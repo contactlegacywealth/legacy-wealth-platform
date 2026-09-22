@@ -14,7 +14,7 @@ aside{position:fixed;left:0;top:64px;bottom:0;width:240px;background:#0a0e14;bor
 aside h4{font-size:10px;color:#687384;letter-spacing:.16em;margin:18px 8px 7px}
 .navbtn{display:block;width:100%;text-align:left;border:0;background:transparent;color:#aeb7c4;padding:11px 12px;border-radius:8px;cursor:pointer;margin:2px 0}.navbtn.active,.navbtn:hover{background:#171d27;color:#d7ad57}
 main{margin-left:240px;padding:24px;max-width:1400px}.head{background:linear-gradient(135deg,#121822,#0b0f15);border:1px solid #252c36;border-radius:14px;padding:22px;margin-bottom:16px}
-h1{margin:4px 0 6px}.muted{color:#8993a3}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}.metric,.panel{background:#0e1219;border:1px solid #252c36;border-radius:12px}.metric{padding:17px}.metric b{display:block;font-size:24px;color:#d7ad57;margin-top:5px}.panel{display:none;padding:20px}.panel.active{display:block}.row{border:1px solid #293340;background:#111722;border-radius:9px;padding:14px;margin:9px 0;display:flex;justify-content:space-between;gap:12px;align-items:center}.form{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:18px}label{color:#aeb7c4;font-size:13px}input,select,textarea{display:block;width:100%;margin-top:6px;background:#080c12;color:#eef1f5;border:1px solid #2b3543;border-radius:8px;padding:10px}textarea{min-height:90px}.full{grid-column:1/-1}.notice{padding:14px;border:1px solid #3b4656;border-radius:9px;background:#111722;margin-bottom:14px}
+h1{margin:4px 0 6px}.muted{color:#8993a3}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}.metric,.panel{background:#0e1219;border:1px solid #252c36;border-radius:12px}.metric{padding:17px}.metric b{display:block;font-size:24px;color:#d7ad57;margin-top:5px}.panel{display:none;padding:20px}.panel.active{display:block}.panel:target{display:block!important}.panel.active:not(:target){display:none!important}.row{border:1px solid #293340;background:#111722;border-radius:9px;padding:14px;margin:9px 0;display:flex;justify-content:space-between;gap:12px;align-items:center}.form{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:18px}label{color:#aeb7c4;font-size:13px}input,select,textarea{display:block;width:100%;margin-top:6px;background:#080c12;color:#eef1f5;border:1px solid #2b3543;border-radius:8px;padding:10px}textarea{min-height:90px}.full{grid-column:1/-1}.notice{padding:14px;border:1px solid #3b4656;border-radius:9px;background:#111722;margin-bottom:14px}
 @media(max-width:800px){#menu{display:block}aside{transform:translateX(-105%);transition:.2s;z-index:30}aside.open{transform:translateX(0)}main{margin-left:0;padding:16px}.metrics{grid-template-columns:repeat(2,1fr)}header{padding-left:55px}.row{flex-direction:column;align-items:stretch}.form{grid-template-columns:1fr}}
 @media(max-width:480px){.metrics{grid-template-columns:1fr}}
 </style>
@@ -23,9 +23,12 @@ h1{margin:4px 0 6px}.muted{color:#8993a3}.metrics{display:grid;grid-template-col
 <header><div class="logo">LEGACY <span>WEALTH</span> · ADMIN</div><div class="actions"><a class="btn" href="index.html">Website</a><button class="btn gold" id="logout">Log out</button></div></header>
 <button id="menu" class="btn">☰</button>
 <aside id="side">
-<h4>OPERATIONS</h4><button class="navbtn active" data-target="users" onclick="showTab('users');return false">Users</button><button class="navbtn" data-target="kyc" onclick="showTab('kyc');return false">KYC Review</button><button class="navbtn" data-target="deposits" onclick="showTab('deposits');return false">Deposits</button><button class="navbtn" data-target="withdrawals" onclick="showTab('withdrawals');return false">Withdrawals</button>
-<h4>INVESTMENTS</h4><button class="navbtn" data-target="plans" onclick="showTab('plans');return false">Investment Plans</button><button class="navbtn" data-target="receiving" onclick="showTab('receiving');return false">Receiving Accounts</button>
-<h4>CONTENT</h4><button class="navbtn" data-target="content" onclick="showTab('content');return false">Testimonials & FAQs</button><button class="navbtn" data-target="academy" onclick="showTab('academy');return false">Academy & Signals</button><button class="navbtn" data-target="settings" onclick="showTab('settings');return false">Site Settings</button>
+<h4>OPERATIONS</h4>
+<a class="navbtn" data-target="users" href="#users" onclick="showTab('users');return true">Users</a><a class="navbtn" data-target="kyc" href="#kyc" onclick="showTab('kyc');return true">KYC Review</a><a class="navbtn" data-target="deposits" href="#deposits" onclick="showTab('deposits');return true">Deposits</a><a class="navbtn" data-target="withdrawals" href="#withdrawals" onclick="showTab('withdrawals');return true">Withdrawals</a>
+<h4>INVESTMENTS</h4>
+<a class="navbtn" data-target="plans" href="#plans" onclick="showTab('plans');return true">Investment Plans</a><a class="navbtn" data-target="receiving" href="#receiving" onclick="showTab('receiving');return true">Receiving Accounts</a>
+<h4>CONTENT</h4>
+<a class="navbtn" data-target="content" href="#content" onclick="showTab('content');return true">Testimonials & FAQs</a><a class="navbtn" data-target="academy" href="#academy" onclick="showTab('academy');return true">Academy & Signals</a><a class="navbtn" data-target="settings" href="#settings" onclick="showTab('settings');return true">Site Settings</a>
 </aside>
 <main>
 <div class="head"><div class="muted">ADMIN CONSOLE</div><h1>Operations control</h1><div id="identity" class="muted">Connecting…</div></div>
@@ -50,6 +53,8 @@ const all=sel=>Array.from(document.querySelectorAll(sel));
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=(n,c)=>new Intl.NumberFormat('en-US',{style:'currency',currency:c||'USD'}).format(Number(n||0));
 function showTab(tab){all('.panel').forEach(p=>p.classList.toggle('active',p.id===tab));all('.navbtn').forEach(b=>b.classList.toggle('active',b.getAttribute('data-target')===tab));one('side').classList.remove('open');window.scrollTo(0,0)} window.showTab=showTab;
+window.addEventListener('hashchange',()=>{const tab=location.hash.slice(1);if(document.getElementById(tab))showTab(tab)});
+if(location.hash.slice(1)&&document.getElementById(location.hash.slice(1)))showTab(location.hash.slice(1));
 one('menu').addEventListener('click',()=>one('side').classList.toggle('open'));
 one('logout').addEventListener('click',async()=>{await supabaseClient.auth.signOut();location.href='index.html'});
 
