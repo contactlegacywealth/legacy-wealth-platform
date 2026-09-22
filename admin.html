@@ -89,7 +89,7 @@ window.openKycReview=async id=>{
  one('kycImages').innerHTML='<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px">'+imgs.join('')+'</div>';
 };
 window.reviewKyc=async(id,status)=>{const r=await supabaseClient.rpc('admin_review_kyc',{p_kyc_id:id,p_status:status,p_note:null});if(r.error)alert(r.error.message);loadKyc()};
-async async function depositReceiptUrl(path){
+async function depositReceiptUrl(path){
  if(!path)return null;
  const r=await supabaseClient.storage.from('deposit-receipts').createSignedUrl(path,900);
  return r.error?null:r.data?.signedUrl||null;
