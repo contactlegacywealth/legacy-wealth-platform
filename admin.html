@@ -67,10 +67,18 @@ async function loadUsers(){
  all('.balance').forEach(f=>f.onsubmit=async e=>{e.preventDefault();const r=await supabaseClient.rpc('admin_adjust_balance',{p_user:f.dataset.id,p_amount:Number(f.amount.value),p_currency:'USD',p_reason:f.reason.value});alert(r.error?.message||'Balance adjusted');if(!r.error)loadUsers()});
 }
 async function loadKyc(){
- const {data,error}=await supabaseClient.from('kyc_applications').select('*,profiles(full_name)').order('submitted_at',{ascending:false}).limit(100);
+ const {data,error}=await supabaseClient.from('kyc_applications').select('*,profiles(full_name,phone,country)').order('submitted_at',{ascending:false}).limit(100);
  if(error){one('kycList').innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
- one('kycList').innerHTML=(data||[]).map(k=>'<div class="row"><div><b>'+esc(k.profiles?.full_name||k.user_id)+'</b><div>NIN: '+esc(k.nin_number||k.id_number||'—')+' · '+esc(k.status)+'</div></div><div><button class="btn gold" onclick="reviewKyc(\''+k.id+'\',\'approved\')">Approve</button> <button class="btn" onclick="reviewKyc(\''+k.id+'\',\'rejected\')">Reject</button></div></div>').join('')||'<div class="notice">No KYC submissions.</div>';
+ window.kycData=data||[];
+ one('kycList').innerHTML=window.kycData.map(k=>'<div class="row"><div><b>'+esc(k.legal_name||k.profiles?.full_name||k.user_id)+'</b><div class="muted">NIN: '+esc(k.nin_number||k.id_number||'—')+' · Status: '+esc(k.status)+'</div></div><button class="btn gold" data-kyc="'+esc(k.id)+'">Review</button></div>').join('')||'<div class="notice">No KYC submissions.</div>';
+ all('[data-kyc]').forEach(b=>b.onclick=()=>openKycReview(b.dataset.kyc));
 }
+window.openKycReview=async id=>{
+ const k=(window.kycData||[]).find(x=>x.id===id);if(!k)return;
+ const details='<div class="notice"><h3>KYC Review</h3><p><b>Legal name:</b> '+esc(k.legal_name||'—')+'</p><p><b>Profile name:</b> '+esc(k.profiles?.full_name||'—')+'</p><p><b>Date of birth:</b> '+esc(k.date_of_birth||'—')+'</p><p><b>Nationality:</b> '+esc(k.nationality||k.profiles?.country||'—')+'</p><p><b>Phone:</b> '+esc(k.profiles?.phone||'—')+'</p><p><b>Address:</b> '+esc(k.address||'—')+'</p><p><b>NIN:</b> '+esc(k.nin_number||k.id_number||'—')+'</p><p><b>Status:</b> '+esc(k.status||'—')+'</p><p><b>Submitted:</b> '+esc(k.submitted_at?new Date(k.submitted_at).toLocaleString():'—')+'</p><button class="btn gold" id="approveKyc">Approve</button> <button class="btn" id="rejectKyc">Reject</button> <button class="btn" id="closeKyc">Close</button></div>';
+ const panel=one('kycList');panel.innerHTML=details;
+ one('approveKyc').onclick=()=>reviewKyc(k.id,'approved');one('rejectKyc').onclick=()=>reviewKyc(k.id,'rejected');one('closeKyc').onclick=loadKyc;
+};
 window.reviewKyc=async(id,status)=>{const r=await supabaseClient.rpc('admin_review_kyc',{p_kyc_id:id,p_status:status,p_note:null});if(r.error)alert(r.error.message);loadKyc()};
 async function loadDeposits(){
  const {data,error}=await supabaseClient.from('deposits').select('*,profiles(full_name)').order('created_at',{ascending:false}).limit(100);
