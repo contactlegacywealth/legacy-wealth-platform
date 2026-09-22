@@ -24,11 +24,11 @@ h1{margin:4px 0 6px}.muted{color:#8993a3}.metrics{display:grid;grid-template-col
 <button id="menu" class="btn">☰</button>
 <aside id="side">
 <h4>OPERATIONS</h4>
-<a class="navbtn" data-target="users" href="#users" onclick="showTab('users');return true">Users</a><a class="navbtn" data-target="kyc" href="#kyc" onclick="showTab('kyc');return true">KYC Review</a><a class="navbtn" data-target="deposits" href="#deposits" onclick="showTab('deposits');return true">Deposits</a><a class="navbtn" data-target="withdrawals" href="#withdrawals" onclick="showTab('withdrawals');return true">Withdrawals</a>
+<a class="navbtn" data-target="users" href="#users" onclick="location.hash='#users';return false">Users</a><a class="navbtn" data-target="kyc" href="#kyc" onclick="location.hash='#kyc';return false">KYC Review</a><a class="navbtn" data-target="deposits" href="#deposits" onclick="location.hash='#deposits';return false">Deposits</a><a class="navbtn" data-target="withdrawals" href="#withdrawals" onclick="location.hash='#withdrawals';return false">Withdrawals</a>
 <h4>INVESTMENTS</h4>
-<a class="navbtn" data-target="plans" href="#plans" onclick="showTab('plans');return true">Investment Plans</a><a class="navbtn" data-target="receiving" href="#receiving" onclick="showTab('receiving');return true">Receiving Accounts</a>
+<a class="navbtn" data-target="plans" href="#plans" onclick="location.hash='#plans';return false">Investment Plans</a><a class="navbtn" data-target="receiving" href="#receiving" onclick="location.hash='#receiving';return false">Receiving Accounts</a>
 <h4>CONTENT</h4>
-<a class="navbtn" data-target="content" href="#content" onclick="showTab('content');return true">Testimonials & FAQs</a><a class="navbtn" data-target="academy" href="#academy" onclick="showTab('academy');return true">Academy & Signals</a><a class="navbtn" data-target="settings" href="#settings" onclick="showTab('settings');return true">Site Settings</a>
+<a class="navbtn" data-target="content" href="#content" onclick="location.hash='#content';return false">Testimonials & FAQs</a><a class="navbtn" data-target="academy" href="#academy" onclick="location.hash='#academy';return false">Academy & Signals</a><a class="navbtn" data-target="settings" href="#settings" onclick="location.hash='#settings';return false">Site Settings</a>
 </aside>
 <main>
 <div class="head"><div class="muted">ADMIN CONSOLE</div><h1>Operations control</h1><div id="identity" class="muted">Connecting…</div></div>
@@ -54,7 +54,7 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const money=(n,c)=>new Intl.NumberFormat('en-US',{style:'currency',currency:c||'USD'}).format(Number(n||0));
 function showTab(tab){all('.panel').forEach(p=>p.classList.toggle('active',p.id===tab));all('.navbtn').forEach(b=>b.classList.toggle('active',b.getAttribute('data-target')===tab));one('side').classList.remove('open');window.scrollTo(0,0)} window.showTab=showTab;
 window.addEventListener('hashchange',()=>{const tab=location.hash.slice(1);if(document.getElementById(tab))showTab(tab)});
-if(location.hash.slice(1)&&document.getElementById(location.hash.slice(1)))showTab(location.hash.slice(1));
+if(location.hash.slice(1)&&document.getElementById(location.hash.slice(1)))showTab(location.hash.slice(1));else showTab('users');
 one('menu').addEventListener('click',()=>one('side').classList.toggle('open'));
 one('logout').addEventListener('click',async()=>{await supabaseClient.auth.signOut();location.href='index.html'});
 
