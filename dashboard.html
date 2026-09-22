@@ -48,6 +48,7 @@ preview($('front'),$('frontPreview'));preview($('back'),$('backPreview'));previe
 $('nin').addEventListener('input',function(){this.value=this.value.replace(/\D/g,'').slice(0,11)});
 try{
 var r=await db.auth.getUser(),u=r.data&&r.data.user;if(!u){location.href='index.html';return}
+var adminCheck=await db.from('admin_users').select('user_id').eq('user_id',u.id).eq('active',true).maybeSingle();if(adminCheck.data){location.href='admin.html';return}
 var p=(await db.from('profiles').select('*').eq('id',u.id).maybeSingle()).data||{};
 var kq=await db.from('kyc_applications').select('*').eq('user_id',u.id).order('submitted_at',{ascending:false}).limit(1).maybeSingle(),kyc=kq.data||{};
 $('name').textContent=p.full_name||u.user_metadata?.full_name||u.email.split('@')[0];
