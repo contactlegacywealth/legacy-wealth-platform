@@ -15,7 +15,7 @@ body{margin:0;background:#080a08;color:#f3f0e8}
 .card small{color:#898b83}.card strong{display:block;color:#dfbb69;font-size:24px;margin-top:7px}
 .muted{color:#898b83;line-height:1.6}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
 .eyebrow{font-size:11px;letter-spacing:.18em;color:#c99f4d;font-weight:800}
-.loader{position:fixed;inset:0;background:#080a08;z-index:100;display:grid;place-items:center;transition:opacity .25s}.loader.hide{opacity:0;pointer-events:none}
+.loader{position:fixed;inset:0;background:#080a08;z-index:100;display:grid;place-items:center;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s}.loader.show{opacity:1;visibility:visible;pointer-events:auto}
 .loaderInner{display:flex;flex-direction:column;align-items:center;gap:12px;color:#dfbb69;font-weight:800;letter-spacing:.12em}
 .spinner{width:30px;height:30px;border:3px solid #292b25;border-top-color:#dfbb69;border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}.pageIn{animation:pageIn .3s ease}@keyframes pageIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -35,26 +35,26 @@ body{margin:0;background:#080a08;color:#f3f0e8}
 </aside><main class="main pageIn"><div class="eyebrow">MEMBER PORTAL</div><h1>Account Overview</h1><p class="muted">Welcome, <span id="name">Member</span>.</p><div class="cards" id="metrics"><div class="card"><small>Available Balance</small><strong>—</strong></div><div class="card"><small>Invested Capital</small><strong>—</strong></div><div class="card"><small>Total Earnings</small><strong>—</strong></div></div><div class="grid"><div class="card"><h2>Account</h2><p id="account" class="muted">Loading account…</p></div><div class="card"><h2>Next steps</h2><p class="muted">Complete KYC, fund your account and select an eligible investment plan.</p></div></div></main><script>
 (async function(){var db=window.supabase.createClient('https://ftugvecpcqjtvoiktjly.supabase.co','sb_publishable_-0pRAIJEppMpN2wlsjXfJg_Hg5CuieZ');var r=await db.auth.getUser(),u=r.data&&r.data.user;if(!u)return;var w=(await db.from('wallets').select('*').eq('user_id',u.id).maybeSingle()).data||{};var a=(n)=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(n)||0);document.getElementById('metrics').innerHTML=[['Available Balance',w.available_balance],['Invested Capital',w.invested_capital],['Total Earnings',w.total_earnings]].map(x=>'<div class="card"><small>'+x[0]+'</small><strong>'+a(x[1])+'</strong></div>').join('');document.getElementById('account').innerHTML='Email: '+u.email+'<br>Verified: '+(u.email_confirmed_at?'Yes':'No')})()
 </script><div class="loader" id="loader"><div class="loaderInner"><div class="spinner"></div>LEGACY WEALTH</div></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
-(function(){document.querySelectorAll('a[href$=".html"]').forEach(function(a){a.addEventListener('click',function(e){var href=a.getAttribute('href');if(href&&href!=='#'&&!href.startsWith('http')&&href!=='index.html'){e.preventDefault();var l=document.getElementById('loader');l.classList.remove('hide');setTimeout(function(){location.href=href},180)}})});window.addEventListener('load',function(){setTimeout(function(){document.getElementById('loader').classList.add('hide')},180)});
+(function(){document.querySelectorAll('a[href$=".html"]').forEach(function(a){a.addEventListener('click',function(e){var href=a.getAttribute('href');if(href&&href!=='#'&&!href.startsWith('http')&&href!=='index.html'){e.preventDefault();var l=document.getElementById('loader');l.classList.add('show');setTimeout(function(){location.href=href},180)}})});window.addEventListener('load',function(){setTimeout(function(){document.getElementById('loader').classList.add('hide')},180)});
 var db=window.supabase.createClient('https://ftugvecpcqjtvoiktjly.supabase.co','sb_publishable_-0pRAIJEppMpN2wlsjXfJg_Hg5CuieZ');
 (async function(){var r=await db.auth.getUser(),u=r.data&&r.data.user;if(!u){location.href='index.html';return}var p=(await db.from('profiles').select('*').eq('id',u.id).maybeSingle()).data||{};var n=document.getElementById('name');if(n)n.textContent=p.full_name||u.email.split('@')[0];document.getElementById('logout').onclick=async function(){await db.auth.signOut();location.href='index.html'}})();
 })();</script><script>
 (function(){
   var side=document.getElementById('side'),shade=document.getElementById('shade'),menu=document.getElementById('menu'),loader=document.getElementById('loader');
-  function hideLoader(){if(loader)loader.classList.add('hide')}
+  function hideLoader(){if(loader)loader.classList.remove('show')}
   if(menu)menu.onclick=function(){side.classList.toggle('open');shade.classList.toggle('open')};
   if(shade)shade.onclick=function(){side.classList.remove('open');shade.classList.remove('open')};
   document.querySelectorAll('.sideLink').forEach(function(a){
     a.onclick=function(e){
       var href=a.getAttribute('href'); if(!href)return;
       e.preventDefault();
-      if(loader)loader.classList.remove('hide');
+      if(loader)loader.classList.add('show');
       side.classList.remove('open'); shade.classList.remove('open');
       setTimeout(function(){location.href=href},180);
     };
   });
-  document.addEventListener('DOMContentLoaded',function(){setTimeout(hideLoader,80)});
-  setTimeout(hideLoader,1200);
-  window.addEventListener('load',hideLoader);
+  
+  
+  
 })();
 </script></body></html>
