@@ -35,7 +35,7 @@ h1{margin:4px 0 6px}.muted{color:#8993a3}.metrics{display:grid;grid-template-col
 <div id="metrics" class="metrics"></div>
 <section id="overview" class="panel active"><h2>Overview</h2><div class="notice">Admin console connected. Use the menu to manage the platform.</div><div id="overviewStatus" class="muted">Platform status</div></section><section id="users" class="panel"><h2>Users</h2><div id="usersList"><div class="notice">Loading users…</div></div></section>
 <section id="kyc" class="panel"><h2>KYC Review</h2><div id="kycList"><div class="notice">Loading KYC…</div></div></section>
-<section id="deposits" class="panel"><h2>Deposits</h2><div id="depositList"><div class="notice">Loading deposits…</div></div></section>
+<section id="deposits" class="panel"><h2>Deposits</h2><div id="depositPreview" style="display:none"></div><div id="depositList"><div class="notice">Loading deposits…</div></div></section>
 <section id="withdrawals" class="panel"><h2>Withdrawals</h2><div id="withdrawList"><div class="notice">Loading withdrawals…</div></div></section>
 <section id="plans" class="panel"><h2>Investment Plans</h2><form id="planForm" class="form"><input type="hidden" id="planId"><label>Name<input id="planName" required></label><label>Currency<select id="planCurrency"><option>USD</option><option>NGN</option></select></label><label>Minimum<input id="planMin" type="number" step=".01" required></label><label>Maximum<input id="planMax" type="number" step=".01" required></label><label>Duration days<input id="planDays" type="number" required></label><label>Return amount<input id="planReturn" type="number" step=".01" required></label><label class="full">Description<textarea id="planDesc"></textarea></label><label>Active<input id="planActive" type="checkbox" checked></label><div><button class="btn gold">Save plan</button></div></form><div id="planList"></div></section>
 <section id="receiving" class="panel"><h2>Receiving Accounts</h2><form id="recvForm" class="form"><input type="hidden" id="recvId"><label>Method<select id="recvMethod"><option value="bank">Bank</option><option value="crypto">Crypto</option></select></label><label>Currency<select id="recvCurrency"><option>NGN</option><option>USD</option></select></label><label>Bank name<input id="recvBank"></label><label>Account name<input id="recvAccount"></label><label>Account number<input id="recvNumber"></label><label>Wallet address<input id="recvWallet"></label><label>Crypto<input id="recvCrypto"></label><label>Network<input id="recvNetwork"></label><label>Active<input id="recvActive" type="checkbox" checked></label><div><button class="btn gold">Save account</button></div></form><div id="recvList"></div></section>
@@ -89,12 +89,29 @@ window.openKycReview=async id=>{
  one('kycImages').innerHTML='<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px">'+imgs.join('')+'</div>';
 };
 window.reviewKyc=async(id,status)=>{const r=await supabaseClient.rpc('admin_review_kyc',{p_kyc_id:id,p_status:status,p_note:null});if(r.error)alert(r.error.message);loadKyc()};
-async function loadDeposits(){
- const {data,error}=await supabaseClient.from('deposits').select('*,profiles(full_name)').order('created_at',{ascending:false}).limit(100);
- if(error){one('depositList').innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
- one('depositList').innerHTML=(data||[]).map(d=>'<div class="row"><div><b>'+esc(d.profiles?.full_name||d.user_id)+'</b><div>'+money(d.amount,d.currency)+' · '+esc(d.method)+' · '+esc(d.status)+'</div></div><div>'+(d.status==='pending'?'<button class="btn gold" onclick="depositReview(\''+d.id+'\',\'approved\')">Approve</button> <button class="btn" onclick="depositReview(\''+d.id+'\',\'rejected\')">Reject</button>':'<span>'+esc(d.status)+'</span>')+'</div></div>').join('')||'<div class="notice">No deposits.</div>';
+async async function depositReceiptUrl(path){
+ if(!path)return null;
+ const r=await supabaseClient.storage.from('deposit-receipts').createSignedUrl(path,900);
+ return r.error?null:r.data?.signedUrl||null;
 }
-window.depositReview=async(id,status)=>{const r=await supabaseClient.rpc('admin_review_deposit',{p_deposit_id:id,p_status:status});if(r.error)alert(r.error.message);loadDeposits()};
+window.viewDepositReceipt=async(id)=>{
+ const d=(window.depositsData||[]).find(x=>x.id===id);
+ if(!d)return;
+ const box=one('depositPreview');
+ if(!box)return;
+ box.innerHTML='<div class="notice">Loading secure receipt…</div>';
+ box.style.display='block';
+ const url=await depositReceiptUrl(d.receipt_path||d.receipt_url);
+ if(!url){box.innerHTML='<div class="notice">No receipt was submitted or the secure receipt could not be loaded.</div>';return}
+ box.innerHTML='<div class="card" style="margin-top:12px"><h3>Deposit receipt</h3><img src="'+esc(url)+'" alt="Deposit receipt" style="max-width:100%;max-height:600px;object-fit:contain;border:1px solid #292b25;border-radius:10px;background:#050605"><p><a class="btn" href="'+esc(url)+'" target="_blank" rel="noopener">Open receipt</a> <button class="btn" onclick="one(\'depositPreview\').style.display=\'none\'">Close</button></p></div>';
+};
+function loadDeposits(){
+ const {data,error}=supabaseClient.from('deposits').select('*,profiles(full_name)').order('created_at',{ascending:false}).limit(100);
+ if(error){one('depositList').innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
+ window.depositsData=data||[];
+ one('depositList').innerHTML=(data||[]).map(d=>'<div class="row"><div><b>'+esc(d.profiles?.full_name||d.user_id)+'</b><div>'+money(d.amount,d.currency)+' · '+esc(d.method)+' · '+esc(d.status)+'</div></div><div>'+(d.status==='pending'?'<button class="btn" onclick="viewDepositReceipt(\''+d.id+'\')">View Receipt</button> <button class="btn gold" onclick="depositReview(\''+d.id+'\',\'approved\')">Approve</button> <button class="btn" onclick="depositReview(\''+d.id+'\',\'rejected\')">Reject</button>':'<span>'+esc(d.status)+'</span>')+'</div></div>').join('')||'<div class="notice">No deposits.</div>';
+}
+window.depositReview=async(id,status)=>{const r=await supabaseClient.rpc('admin_review_deposit',{p_deposit_id:id,p_status:status});if(r.error)alert(r.error.message);else one('depositPreview').style.display='none';loadDeposits()};
 async function loadWithdrawals(){
  const {data,error}=await supabaseClient.from('withdrawals').select('*,profiles(full_name)').order('created_at',{ascending:false}).limit(100);
  if(error){one('withdrawList').innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
