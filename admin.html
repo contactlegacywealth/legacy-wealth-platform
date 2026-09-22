@@ -89,40 +89,24 @@ window.openKycReview=async id=>{
  one('kycImages').innerHTML='<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px">'+imgs.join('')+'</div>';
 };
 window.reviewKyc=async(id,status)=>{const r=await supabaseClient.rpc('admin_review_kyc',{p_kyc_id:id,p_status:status,p_note:null});if(r.error)alert(r.error.message);loadKyc()};
-async function depositReceiptUrl(path){
- if(!path)return null;
- const r=await supabaseClient.storage.from('deposit-receipts').createSignedUrl(path,900);
- return r.error?null:r.data?.signedUrl||null;
-}
-window.viewDepositReceipt=async(id)=>{
+async window.viewDepositReceipt=async function(id){
  const d=(window.depositsData||[]).find(x=>x.id===id);
  if(!d)return;
  const box=one('depositPreview');
- if(!box)return;
- box.innerHTML='<div class="notice">Loading secure receipt…</div>';
  box.style.display='block';
- const url=await depositReceiptUrl(d.receipt_path||d.receipt_url);
- if(!url){box.innerHTML='<div class="notice">No receipt was submitted or the secure receipt could not be loaded.</div>';return}
- box.innerHTML='<div class="card" style="margin-top:12px"><h3>Deposit receipt</h3><img src="'+esc(url)+'" alt="Deposit receipt" style="max-width:100%;max-height:600px;object-fit:contain;border:1px solid #292b25;border-radius:10px;background:#050605"><p><a class="btn" href="'+esc(url)+'" target="_blank" rel="noopener">Open receipt</a> <button class="btn" onclick="one(\'depositPreview\').style.display=\'none\'">Close</button></p></div>';
+ box.innerHTML='<div class="notice">Loading secure receipt…</div>';
+ const path=d.proof_url;
+ if(!path){box.innerHTML='<div class="notice">No receipt was submitted with this deposit.</div>';return}
+ const r=await supabaseClient.storage.from('deposit-receipts').createSignedUrl(path,900);
+ if(r.error||!r.data?.signedUrl){box.innerHTML='<div class="notice">The secure receipt could not be loaded.</div>';return}
+ box.innerHTML='<div class="card" style="margin-top:12px"><h3>Deposit receipt</h3><p><b>Member:</b> '+esc(d.profiles?.full_name||d.user_id)+'</p><p><b>Amount:</b> '+money(d.amount,d.currency)+' · '+esc(d.method)+'</p><img src="'+esc(r.data.signedUrl)+'" alt="Deposit receipt" style="display:block;max-width:100%;max-height:650px;margin:12px auto;border-radius:12px;border:1px solid #292b25;background:#050605"><p class="muted">Secure preview expires after 15 minutes.</p><button class="btn" onclick="one('depositPreview').style.display='none'">Close</button></div>';
 };
 function loadDeposits(){
- const {data,error}=supabaseClient.from('deposits').select('*,profiles(full_name)').order('created_at',{ascending:false}).limit(100);
+ const {data,error}=await supabaseClient.from('deposits').select('*,profiles(full_name)').order('created_at',{ascending:false}).limit(100);
  if(error){one('depositList').innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
- window.depositsData=data||[];
  one('depositList').innerHTML=(data||[]).map(d=>'<div class="row"><div><b>'+esc(d.profiles?.full_name||d.user_id)+'</b><div>'+money(d.amount,d.currency)+' · '+esc(d.method)+' · '+esc(d.status)+'</div></div><div>'+(d.status==='pending'?'<button class="btn" onclick="viewDepositReceipt(\''+d.id+'\')">View Receipt</button> <button class="btn gold" onclick="depositReview(\''+d.id+'\',\'approved\')">Approve</button> <button class="btn" onclick="depositReview(\''+d.id+'\',\'rejected\')">Reject</button>':'<span>'+esc(d.status)+'</span>')+'</div></div>').join('')||'<div class="notice">No deposits.</div>';
 }
-window.viewDepositReceipt=async function(id){
- const d=(window.depositsData||[]).find(x=>x.id===id);
- if(!d)return;
- const box=one('depositPreview');
- box.style.display='block';
- box.innerHTML='<div class="card"><h3>Deposit Receipt</h3><p><b>Member:</b> '+esc(d.profiles?.full_name||d.user_id)+'</p><p><b>Amount:</b> '+money(d.amount,d.currency)+'</p><p><b>Method:</b> '+esc(d.method)+'</p><p><b>Reference:</b> '+esc(d.reference||'Not provided')+'</p><p><b>Status:</b> '+esc(d.status)+'</p><div id="receiptImage" class="notice">Loading secure receipt…</div><button class="btn" onclick="one('depositPreview').style.display='none'">Close</button></div>';
- if(!d.proof_url){one('receiptImage').innerHTML='<div class="notice">No receipt was uploaded with this deposit.</div>';return}
- const signed=await supabaseClient.storage.from('deposit-receipts').createSignedUrl(d.proof_url,900);
- if(signed.error){one('receiptImage').innerHTML='<div class="notice">'+esc(signed.error.message)+'</div>';return}
- one('receiptImage').innerHTML='<img src="'+signed.data.signedUrl+'" alt="Deposit receipt" style="display:block;max-width:100%;max-height:650px;margin:12px auto;border-radius:12px;border:1px solid #292b25;background:#050605"><p class="muted">Secure preview expires after 15 minutes.</p>';
-};
-window.depositReview=async(id,status)=>{const r=await supabaseClient.rpc('admin_review_deposit',{p_deposit_id:id,p_status:status});if(r.error)alert(r.error.message);else one('depositPreview').style.display='none';loadDeposits()};
+window.depositReview=async(id,status)=>{const r=await supabaseClient.rpc('admin_review_deposit',{p_deposit_id:id,p_status:status});if(r.error)alert(r.error.message);loadDeposits()};
 async function loadWithdrawals(){
  const {data,error}=await supabaseClient.from('withdrawals').select('*,profiles(full_name)').order('created_at',{ascending:false}).limit(100);
  if(error){one('withdrawList').innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
