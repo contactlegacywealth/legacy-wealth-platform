@@ -3,127 +3,290 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Legacy Wealth | Admin</title>
+<title>Legacy Wealth | Admin Console</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#07090d;color:#eef1f5;font-family:system-ui,-apple-system,Segoe UI,sans-serif}
-header{height:64px;background:#0c1017;border-bottom:1px solid #252c36;display:flex;align-items:center;justify-content:space-between;padding:0 18px;position:sticky;top:0;z-index:20}
-.logo{font-weight:800;letter-spacing:.08em}.logo span{color:#d7ad57}.actions{display:flex;gap:8px}
-button,a{font:inherit}.btn{border:1px solid #303a48;background:#121821;color:#eef1f5;border-radius:8px;padding:9px 13px;cursor:pointer;text-decoration:none}.gold{background:#d7ad57;color:#111;border-color:#d7ad57}
-#menu{display:none;position:fixed;top:14px;left:12px;z-index:40;font-size:22px}
-aside{position:fixed;left:0;top:64px;bottom:0;width:240px;background:#0a0e14;border-right:1px solid #252c36;padding:18px 12px;overflow:auto}
-aside h4{font-size:10px;color:#687384;letter-spacing:.16em;margin:18px 8px 7px}
-.navbtn{display:block;width:100%;text-align:left;border:0;background:transparent;color:#aeb7c4;padding:11px 12px;border-radius:8px;cursor:pointer;margin:2px 0}.navbtn.active,.navbtn:hover{background:#171d27;color:#d7ad57}
-main{margin-left:240px;padding:24px;max-width:1400px}.head{background:linear-gradient(135deg,#121822,#0b0f15);border:1px solid #252c36;border-radius:14px;padding:22px;margin-bottom:16px}
-h1{margin:4px 0 6px}.muted{color:#8993a3}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}.metric,.panel{background:#0e1219;border:1px solid #252c36;border-radius:12px}.metric{padding:17px}.metric b{display:block;font-size:24px;color:#d7ad57;margin-top:5px}.panel{display:none;padding:20px}.panel.active{display:block}.panel:target{display:block!important}.panel.active:not(:target){display:none!important}.row{border:1px solid #293340;background:#111722;border-radius:9px;padding:14px;margin:9px 0;display:flex;justify-content:space-between;gap:12px;align-items:center}.form{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:18px}label{color:#aeb7c4;font-size:13px}input,select,textarea{display:block;width:100%;margin-top:6px;background:#080c12;color:#eef1f5;border:1px solid #2b3543;border-radius:8px;padding:10px}textarea{min-height:90px}.full{grid-column:1/-1}.notice{padding:14px;border:1px solid #3b4656;border-radius:9px;background:#111722;margin-bottom:14px}
-@media(max-width:800px){#menu{display:block}aside{transform:translateX(-105%);transition:.2s;z-index:30}aside.open{transform:translateX(0)}main{margin-left:0;padding:16px}.metrics{grid-template-columns:repeat(2,1fr)}header{padding-left:55px}.row{flex-direction:column;align-items:stretch}.form{grid-template-columns:1fr}}
-@media(max-width:480px){.metrics{grid-template-columns:1fr}}
+:root{--bg:#06080c;--panel:#0d1219;--panel2:#111821;--line:#25303c;--text:#f2f4f7;--muted:#8d98a8;--gold:#d7ad57;--danger:#d86b6b;--ok:#67c58a}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+button,input,select,textarea{font:inherit}button{cursor:pointer}.app{min-height:100vh}
+.top{height:64px;position:fixed;inset:0 0 auto 0;z-index:50;background:#0a0e14;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 18px}
+.brand{font-weight:900;letter-spacing:.08em}.brand span{color:var(--gold)}.top-actions{display:flex;gap:8px;align-items:center}
+.btn{border:1px solid #334050;background:#121923;color:var(--text);border-radius:9px;padding:9px 13px;text-decoration:none}.btn:hover{border-color:#556477}.btn.gold{background:var(--gold);border-color:var(--gold);color:#111}.btn.danger{border-color:#6d3a3a;color:#ffb0b0}.btn.small{padding:7px 10px;font-size:13px}
+#hamb{display:none}.side{position:fixed;top:64px;left:0;bottom:0;width:245px;background:#090d13;border-right:1px solid var(--line);z-index:40;padding:15px 11px;overflow:auto}
+.navgroup{margin:17px 7px 7px;color:#667282;font-size:10px;font-weight:800;letter-spacing:.16em}.nav{display:flex;align-items:center;width:100%;border:0;background:transparent;color:#aeb8c6;text-align:left;padding:11px 12px;border-radius:9px;margin:2px 0}.nav:hover,.nav.active{background:#171e28;color:var(--gold)}
+.main{margin-left:245px;padding:88px 24px 35px;max-width:1450px}
+.hero{border:1px solid var(--line);border-radius:15px;padding:22px;background:linear-gradient(135deg,#111821,#090d13);margin-bottom:16px}.eyebrow{color:var(--muted);font-size:12px;letter-spacing:.12em;font-weight:700}.hero h1{margin:5px 0}.status{color:var(--muted);font-size:14px}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}.metric{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:16px}.metric span{color:var(--muted);font-size:13px}.metric b{display:block;color:var(--gold);font-size:25px;margin-top:5px}
+.section{display:none}.section.active{display:block}.section-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:14px}.section h2{margin:0}
+.card{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:17px;margin-bottom:12px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.full{grid-column:1/-1}
+label{display:block;color:#aeb8c6;font-size:13px}input,select,textarea{width:100%;margin-top:6px;border:1px solid #2d3948;background:#080c11;color:var(--text);border-radius:8px;padding:10px}textarea{min-height:100px;resize:vertical}
+.row{border:1px solid #283340;background:var(--panel2);border-radius:10px;padding:13px;margin:9px 0;display:flex;justify-content:space-between;align-items:center;gap:14px}.row-main{min-width:0}.row-title{font-weight:750}.muted{color:var(--muted)}.actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center}.pill{display:inline-block;padding:4px 8px;border-radius:99px;border:1px solid #334052;font-size:12px}.ok{color:#9be0b4;border-color:#2f6144}.warn{color:#e9c879;border-color:#6b5830}.bad{color:#ffadad;border-color:#6d3a3a}
+.notice{border:1px solid #2d3948;background:#101720;border-radius:10px;padding:14px;margin-bottom:12px}.notice.error{border-color:#6d3a3a;color:#ffb0b0}.notice.ok{border-color:#2f6144;color:#a9e6bd}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px;border-bottom:1px solid #26313e;vertical-align:top;font-size:13px}th{color:#8d98a8;font-weight:650}
+.preview{border:1px solid #3a4655;background:#0a0f15;border-radius:12px;padding:15px;margin-bottom:14px}.preview img{max-width:100%;max-height:520px;display:block;margin:10px auto;border:1px solid #2c3744;border-radius:9px;background:#05070a}
+.empty{padding:20px;color:var(--muted);border:1px dashed #34404f;border-radius:10px;text-align:center}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:35}.overlay.show{display:block}
+@media(max-width:900px){#hamb{display:block}.side{transform:translateX(-105%);transition:.2s}.side.open{transform:translateX(0)}.main{margin-left:0;padding:82px 15px 30px}.metrics{grid-template-columns:repeat(2,1fr)}.grid3{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.top{padding-left:58px}.metrics,.grid,.grid3{grid-template-columns:1fr}.row{align-items:stretch;flex-direction:column}.actions{width:100%}.actions .btn,.actions select{flex:1}}
 </style>
 </head>
 <body>
-<header><div class="logo">LEGACY <span>WEALTH</span> · ADMIN</div><div class="actions"><a class="btn" href="index.html">Website</a><button class="btn gold" id="logout">Log out</button></div></header>
-<button id="menu" class="btn">☰</button>
-<aside id="side">
-<h4>OPERATIONS</h4>
-<a class="navbtn" data-target="users" href="#users" onclick="showTab('users');return true">Users</a><a class="navbtn" data-target="kyc" href="#kyc" onclick="showTab('kyc');return true">KYC Review</a><a class="navbtn" data-target="deposits" href="#deposits" onclick="showTab('deposits');return true">Deposits</a><a class="navbtn" data-target="withdrawals" href="#withdrawals" onclick="showTab('withdrawals');return true">Withdrawals</a>
-<h4>INVESTMENTS</h4>
-<a class="navbtn" data-target="plans" href="#plans" onclick="showTab('plans');return true">Investment Plans</a><a class="navbtn" data-target="receiving" href="#receiving" onclick="showTab('receiving');return true">Receiving Accounts</a>
-<h4>CONTENT</h4>
-<a class="navbtn" data-target="content" href="#content" onclick="showTab('content');return true">Testimonials & FAQs</a><a class="navbtn" data-target="academy" href="#academy" onclick="showTab('academy');return true">Academy & Signals</a><a class="navbtn" data-target="settings" href="#settings" onclick="showTab('settings');return true">Site Settings</a>
+<div class="app">
+<header class="top">
+<button id="hamb" class="btn" aria-label="Open menu">☰</button>
+<div class="brand">LEGACY <span>WEALTH</span> · ADMIN</div>
+<div class="top-actions"><a class="btn" href="index.html">Website</a><button id="logout" class="btn gold">Log out</button></div>
+</header>
+<div id="overlay" class="overlay"></div>
+<aside id="side" class="side">
+<div class="navgroup">OPERATIONS</div>
+<button class="nav active" data-section="overview">Overview</button>
+<button class="nav" data-section="users">Users & Balances</button>
+<button class="nav" data-section="kyc">KYC Review</button>
+<button class="nav" data-section="deposits">Deposits</button>
+<button class="nav" data-section="withdrawals">Withdrawals</button>
+<div class="navgroup">INVESTMENTS</div>
+<button class="nav" data-section="plans">Investment Plans</button>
+<button class="nav" data-section="receiving">Receiving Accounts</button>
+<div class="navgroup">CONTENT</div>
+<button class="nav" data-section="content">Testimonials & FAQs</button>
+<button class="nav" data-section="academy">Academy & Signals</button>
+<button class="nav" data-section="settings">Site Settings & Socials</button>
 </aside>
-<main>
-<div class="head"><div class="muted">ADMIN CONSOLE</div><h1>Operations control</h1><div id="identity" class="muted">Connecting…</div></div>
+<main class="main">
+<div class="hero"><div class="eyebrow">ADMIN CONSOLE</div><h1>Legacy Wealth operations</h1><div id="identity" class="status">Checking administrator access…</div></div>
 <div id="metrics" class="metrics"></div>
-<section id="overview" class="panel active"><h2>Overview</h2><div class="notice">Admin console connected. Use the menu to manage the platform.</div><div id="overviewStatus" class="muted">Platform status</div></section><section id="users" class="panel"><h2>Users</h2><div id="usersList"><div class="notice">Loading users…</div></div></section>
-<section id="kyc" class="panel"><h2>KYC Review</h2><div id="kycList"><div class="notice">Loading KYC…</div></div></section>
-<section id="deposits" class="panel"><h2>Deposits</h2><div id="depositPreview" style="display:none"></div><div id="depositList"><div class="notice">Loading deposits…</div></div></section>
-<section id="withdrawals" class="panel"><h2>Withdrawals</h2><div id="withdrawList"><div class="notice">Loading withdrawals…</div></div></section>
-<section id="plans" class="panel"><h2>Investment Plans</h2><form id="planForm" class="form"><input type="hidden" id="planId"><label>Name<input id="planName" required></label><label>Currency<select id="planCurrency"><option>USD</option><option>NGN</option></select></label><label>Minimum<input id="planMin" type="number" step=".01" required></label><label>Maximum<input id="planMax" type="number" step=".01" required></label><label>Duration days<input id="planDays" type="number" required></label><label>Return amount<input id="planReturn" type="number" step=".01" required></label><label class="full">Description<textarea id="planDesc"></textarea></label><label>Active<input id="planActive" type="checkbox" checked></label><div><button class="btn gold">Save plan</button></div></form><div id="planList"></div></section>
-<section id="receiving" class="panel"><h2>Receiving Accounts</h2><form id="recvForm" class="form"><input type="hidden" id="recvId"><label>Method<select id="recvMethod"><option value="bank">Bank</option><option value="crypto">Crypto</option></select></label><label>Currency<select id="recvCurrency"><option>NGN</option><option>USD</option></select></label><label>Bank name<input id="recvBank"></label><label>Account name<input id="recvAccount"></label><label>Account number<input id="recvNumber"></label><label>Wallet address<input id="recvWallet"></label><label>Crypto<input id="recvCrypto"></label><label>Network<input id="recvNetwork"></label><label>Active<input id="recvActive" type="checkbox" checked></label><div><button class="btn gold">Save account</button></div></form><div id="recvList"></div></section>
-<section id="content" class="panel"><h2>Testimonials & FAQs</h2><form id="testForm" class="form"><label>Name<input id="testName"></label><label>Role<input id="testRole"></label><label class="full">Quote<textarea id="testQuote"></textarea></label><div><button class="btn gold">Save testimonial</button></div></form><div id="testList"></div><hr><form id="faqForm" class="form"><label class="full">Question<input id="faqQ"></label><label class="full">Answer<textarea id="faqA"></textarea></label><div><button class="btn gold">Save FAQ</button></div></form><div id="faqList"></div></section>
-<section id="academy" class="panel"><h2>Academy & Signals</h2><form id="eventForm" class="form"><label>Title<input id="eventTitle" required></label><label>Date/time<input id="eventDate" type="datetime-local" required></label><label>Host<input id="eventHost"></label><label>Meeting link<input id="eventLink"></label><label class="full">Description<textarea id="eventDesc"></textarea></label><div><button class="btn gold">Save event</button></div></form><div id="eventList"></div><hr><form id="signalForm" class="form"><label>Asset<input id="sigAsset" required></label><label>Direction<input id="sigDirection"></label><label>Entry<input id="sigEntry"></label><label>Stop loss<input id="sigSL"></label><label>Take profit<input id="sigTP"></label><label>Risk<input id="sigRisk"></label><label class="full">Analysis<textarea id="sigAnalysis"></textarea></label><div><button class="btn gold">Publish signal</button></div></form><div id="signalList"></div></section>
-<section id="settings" class="panel"><h2>Site Settings</h2><form id="settingsForm" class="form"><label>Email<input id="setEmail"></label><label>Phone<input id="setPhone"></label><label>WhatsApp<input id="setWhatsapp"></label><label class="full">Risk disclosure<textarea id="setRisk"></textarea></label><div><button class="btn gold">Save settings</button></div></form></section>
+
+<section id="overview" class="section active">
+<div class="section-head"><h2>Overview</h2><button class="btn small" data-reload="overview">Refresh</button></div>
+<div id="overviewBox"></div>
+</section>
+
+<section id="users" class="section">
+<div class="section-head"><h2>Users & Balances</h2><button class="btn small" data-reload="users">Refresh</button></div>
+<div id="usersBox"></div>
+</section>
+
+<section id="kyc" class="section">
+<div class="section-head"><h2>KYC Review</h2><button class="btn small" data-reload="kyc">Refresh</button></div>
+<div id="kycBox"></div>
+</section>
+
+<section id="deposits" class="section">
+<div class="section-head"><h2>Deposits</h2><button class="btn small" data-reload="deposits">Refresh</button></div>
+<div id="receiptBox"></div><div id="depositsBox"></div>
+</section>
+
+<section id="withdrawals" class="section">
+<div class="section-head"><h2>Withdrawals</h2><button class="btn small" data-reload="withdrawals">Refresh</button></div>
+<div id="withdrawalsBox"></div>
+</section>
+
+<section id="plans" class="section">
+<div class="section-head"><h2>Investment Plans</h2><button class="btn small" data-reload="plans">Refresh</button></div>
+<div class="card"><form id="planForm" class="grid">
+<input type="hidden" id="planId">
+<label>Name<input id="planName" required></label><label>Currency<select id="planCurrency"><option>USD</option><option>NGN</option></select></label>
+<label>Minimum<input id="planMin" type="number" step=".01" required></label><label>Maximum<input id="planMax" type="number" step=".01" required></label>
+<label>Duration (days)<input id="planDays" type="number" min="1" required></label><label>Return amount<input id="planReturn" type="number" step=".01" min="0" required></label>
+<label class="full">Description<textarea id="planDesc"></textarea></label><label>Active <input id="planActive" type="checkbox" checked></label>
+<div class="actions"><button class="btn gold">Save plan</button><button type="button" class="btn" id="planClear">Clear</button></div>
+</form></div><div id="plansBox"></div>
+</section>
+
+<section id="receiving" class="section">
+<div class="section-head"><h2>Receiving Accounts</h2><button class="btn small" data-reload="receiving">Refresh</button></div>
+<div class="notice">Investment receiving details are separate from member withdrawal accounts. Existing deposit records keep their saved account snapshot.</div>
+<div class="card"><form id="receivingForm" class="grid">
+<input type="hidden" id="recvId">
+<label>Method<select id="recvMethod"><option value="bank">Bank</option><option value="crypto">Crypto</option></select></label><label>Currency<select id="recvCurrency"><option>NGN</option><option>USD</option></select></label>
+<label>Bank name<input id="recvBank"></label><label>Account name<input id="recvAccount"></label><label>Account number<input id="recvNumber"></label>
+<label>Wallet address<input id="recvWallet"></label><label>Crypto<input id="recvCrypto"></label><label>Network<input id="recvNetwork"></label>
+<label>Active <input id="recvActive" type="checkbox" checked></label><div class="actions"><button class="btn gold">Save account</button><button type="button" class="btn" id="recvClear">Clear</button></div>
+</form></div><div id="receivingBox"></div>
+</section>
+
+<section id="content" class="section">
+<div class="section-head"><h2>Testimonials & FAQs</h2><button class="btn small" data-reload="content">Refresh</button></div>
+<div class="card"><h3>New testimonial</h3><form id="testForm" class="grid"><label>Name<input id="testName" required></label><label>Role<input id="testRole"></label><label class="full">Quote<textarea id="testQuote" required></textarea></label><div><button class="btn gold">Add testimonial</button></div></form></div>
+<div id="testimonialsBox"></div>
+<div class="card"><h3>New FAQ</h3><form id="faqForm" class="grid"><label class="full">Question<input id="faqQ" required></label><label class="full">Answer<textarea id="faqA" required></textarea></label><div><button class="btn gold">Add FAQ</button></div></form></div>
+<div id="faqsBox"></div>
+</section>
+
+<section id="academy" class="section">
+<div class="section-head"><h2>Academy & Signals</h2><button class="btn small" data-reload="academy">Refresh</button></div>
+<div class="card"><h3>New event</h3><form id="eventForm" class="grid"><label>Title<input id="eventTitle" required></label><label>Date/time<input id="eventDate" type="datetime-local" required></label><label>Host<input id="eventHost"></label><label>Meeting link<input id="eventLink"></label><label class="full">Description<textarea id="eventDesc"></textarea></label><div><button class="btn gold">Add event</button></div></form></div>
+<div id="eventsBox"></div>
+<div class="card"><h3>New trading signal</h3><form id="signalForm" class="grid3"><label>Asset<input id="sigAsset" required></label><label>Market<input id="sigMarket"></label><label>Direction<input id="sigDirection"></label><label>Entry<input id="sigEntry"></label><label>Stop loss<input id="sigSL"></label><label>Take profit<input id="sigTP"></label><label>Risk level<input id="sigRisk"></label><label class="full">Analysis<textarea id="sigAnalysis"></textarea></label><div><button class="btn gold">Publish signal</button></div></form></div>
+<div id="signalsBox"></div>
+</section>
+
+<section id="settings" class="section">
+<div class="section-head"><h2>Site Settings & Socials</h2><button class="btn small" data-reload="settings">Refresh</button></div>
+<div class="card"><form id="settingsForm" class="grid"><label>Email<input id="setEmail"></label><label>Phone<input id="setPhone"></label><label>WhatsApp<input id="setWhatsapp"></label><label class="full">Risk disclosure<textarea id="setRisk"></textarea></label><div><button class="btn gold">Save settings</button></div></form></div>
+<div class="card"><h3>Social links</h3><form id="socialForm" class="grid"><label>Label<input id="socialLabel" required></label><label>URL<input id="socialUrl" type="url" required></label><label>Active <input id="socialActive" type="checkbox" checked></label><div><button class="btn gold">Add social link</button></div></form></div>
+<div id="socialsBox"></div>
+</section>
 </main>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SB_URL='https://ftugvecpcqjtvoiktjly.supabase.co';
-const SB_KEY='sb_publishable_-0pRAIJEppMpN2wlsjXfJg_Hg5CuieZ';
-const supabaseClient=window.supabase.createClient(SB_URL,SB_KEY);
-const one=id=>document.getElementById(id);
-const all=sel=>Array.from(document.querySelectorAll(sel));
+(function(){
+'use strict';
+const URL='https://ftugvecpcqjtvoiktjly.supabase.co';
+const KEY='sb_publishable_-0pRAIJEppMpN2wlsjXfJg_Hg5CuieZ';
+const db=window.supabase.createClient(URL,KEY);
+const $=id=>document.getElementById(id);
+const $$=s=>Array.from(document.querySelectorAll(s));
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=(n,c)=>new Intl.NumberFormat('en-US',{style:'currency',currency:c||'USD'}).format(Number(n||0));
-function showTab(tab){all('.panel').forEach(p=>p.classList.toggle('active',p.id===tab));all('.navbtn').forEach(b=>b.classList.toggle('active',b.getAttribute('data-target')===tab));one('side').classList.remove('open');window.scrollTo(0,0)} window.showTab=showTab;
-window.addEventListener('hashchange',()=>{const tab=location.hash.slice(1);if(document.getElementById(tab))showTab(tab)});
-if(location.hash.slice(1)&&document.getElementById(location.hash.slice(1)))showTab(location.hash.slice(1));
-one('menu').addEventListener('click',()=>one('side').classList.toggle('open'));
-one('logout').addEventListener('click',async()=>{await supabaseClient.auth.signOut();location.href='index.html'});
+const msg=(text,type='')=>'<div class="notice '+type+'">'+esc(text)+'</div>';
+const state={user:null,section:'overview',users:[],kyc:[],deposits:[],withdrawals:[],plans:[],receiving:[]};
 
-async function isAdmin(){
- const {data:{user}}=await supabaseClient.auth.getUser();
- if(!user){location.href='index.html';return null}
- const {data:admin,error}=await supabaseClient.from('admin_users').select('role').eq('user_id',user.id).eq('active',true).maybeSingle();
- if(error||!admin){document.querySelector('main').innerHTML='<div class="notice"><h2>Admin access required</h2><a class="btn gold" href="overview.html">Member portal</a></div>';return null}
- one('identity').textContent=user.email+' • '+admin.role;
- return user;
+function show(section){
+ state.section=section;
+ $$('.section').forEach(x=>x.classList.toggle('active',x.id===section));
+ $$('.nav').forEach(x=>x.classList.toggle('active',x.dataset.section===section));
+ $('side').classList.remove('open');$('overlay').classList.remove('show');window.scrollTo(0,0);
+ const loaders={overview:loadOverview,users:loadUsers,kyc:loadKyc,deposits:loadDeposits,withdrawals:loadWithdrawals,plans:loadPlans,receiving:loadReceiving,content:loadContent,academy:loadAcademy,settings:loadSettings};
+ if(loaders[section]) loaders[section]();
 }
+function fail(id,e){$(id).innerHTML=msg(e?.message||String(e),'error')}
+async function run(fn,id){try{await fn()}catch(e){fail(id,e)}}
+
+$$('.nav').forEach(b=>b.addEventListener('click',()=>show(b.dataset.section)));
+$$('[data-reload]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.reload)));
+$('hamb').addEventListener('click',()=>{$('side').classList.toggle('open');$('overlay').classList.toggle('show')});
+$('overlay').addEventListener('click',()=>{$('side').classList.remove('open');$('overlay').classList.remove('show')});
+$('logout').addEventListener('click',async()=>{await db.auth.signOut();location.href='index.html'});
+
+async function requireAdmin(){
+ const {data:{user},error:ue}=await db.auth.getUser();
+ if(ue) throw ue;
+ if(!user){$('identity').textContent='No signed-in session. Redirecting…';setTimeout(()=>location.href='index.html',700);return false}
+ const {data:admin,error}=await db.from('admin_users').select('role,active').eq('user_id',user.id).eq('active',true).maybeSingle();
+ if(error) throw error;
+ if(!admin){$('identity').textContent='This account is not an active administrator.';document.querySelector('.main').innerHTML='<div class="notice error"><h2>Admin access required</h2><p>Sign in with an active Legacy Wealth administrator account.</p><a class="btn gold" href="index.html">Return to website</a></div>';return false}
+ state.user=user;$('identity').textContent=(user.email||user.id)+' · '+admin.role;
+ return true;
+}
+
+async function loadMetrics(){
+ const qs=[
+ db.from('profiles').select('*',{count:'exact',head:true}),
+ db.from('investment_plans').select('*',{count:'exact',head:true}),
+ db.from('deposits').select('*',{count:'exact',head:true}).eq('status','pending'),
+ db.from('withdrawals').select('*',{count:'exact',head:true}).in('status',['pending','under_review'])
+ ];
+ const r=await Promise.all(qs);
+ $('metrics').innerHTML=[['Users',r[0].count||0],['Plans',r[1].count||0],['Pending deposits',r[2].count||0],['Pending withdrawals',r[3].count||0]].map(x=>'<div class="metric"><span>'+x[0]+'</span><b>'+x[1]+'</b></div>').join('');
+}
+async function loadOverview(){
+ await run(async()=>{await loadMetrics();$('overviewBox').innerHTML='<div class="card"><b>Admin system ready.</b><p class="muted">Choose an operation from the left menu. Each section loads independently so one failed query cannot freeze the whole console.</p></div>'},'overviewBox');
+}
+
 async function loadUsers(){
- const {data,error}=await supabaseClient.from('profiles').select('*').order('created_at',{ascending:false}).limit(100);
- one('usersList').innerHTML=error?'<div class="notice">'+esc(error.message)+'</div>':(data||[]).map(u=>'<div class="row"><div><b>'+esc(u.full_name||'Member')+'</b><div class="muted">'+esc(u.id)+' · KYC '+esc(u.kyc_status)+'</div></div><form class="balance" data-id="'+u.id+'"><input name="amount" type="number" step=".01" placeholder="+/- amount" required><input name="reason" placeholder="Reason" required><button class="btn gold">Adjust</button></form></div>').join('')||'<div class="notice">No users.</div>';
- all('.balance').forEach(f=>f.onsubmit=async e=>{e.preventDefault();const r=await supabaseClient.rpc('admin_adjust_balance',{p_user:f.dataset.id,p_amount:Number(f.amount.value),p_currency:'USD',p_reason:f.reason.value});alert(r.error?.message||'Balance adjusted');if(!r.error)loadUsers()});
+ await run(async()=>{
+  const {data,error}=await db.from('profiles').select('*').order('created_at',{ascending:false}).limit(200);if(error)throw error;state.users=data||[];
+  if(!state.users.length){$('usersBox').innerHTML='<div class="empty">No users found.</div>';return}
+  const ids=state.users.map(x=>x.id);
+  const {data:wallets}=await db.from('wallets').select('*').in('user_id',ids);
+  const wm=new Map((wallets||[]).map(w=>[w.user_id,w]));
+  $('usersBox').innerHTML=state.users.map(u=>{const w=wm.get(u.id)||{};return '<div class="row"><div class="row-main"><div class="row-title">'+esc(u.full_name||'Unnamed member')+'</div><div class="muted">'+esc(u.id)+'</div><div>Balance: <b>'+money(w.available_balance,'USD')+'</b> · KYC: <span class="pill '+(u.kyc_status==='approved'?'ok':'warn')+'">'+esc(u.kyc_status||'not_started')+'</span></div></div><form class="actions balance-form" data-user="'+esc(u.id)+'"><input name="amount" type="number" step=".01" placeholder="+ / - USD" required style="max-width:130px"><input name="reason" placeholder="Reason" required style="max-width:180px"><button class="btn gold small">Adjust</button></form></div>'}).join('');
+  $$('.balance-form').forEach(f=>f.addEventListener('submit',async e=>{e.preventDefault();const b=e.submitter;b.disabled=true;try{const r=await db.rpc('admin_adjust_balance',{p_user:f.dataset.user,p_amount:Number(f.amount.value),p_currency:'USD',p_reason:f.reason.value});if(r.error)throw r.error;await loadUsers();await loadMetrics();alert('Balance adjusted successfully.')}catch(err){alert(err.message)}finally{b.disabled=false}}));
+ },'usersBox');
 }
+
 async function loadKyc(){
- const {data,error}=await supabaseClient.from('kyc_applications').select('*,profiles(full_name,phone,country)').order('submitted_at',{ascending:false}).limit(100);
- if(error){one('kycList').innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
- window.kycData=data||[];
- one('kycList').innerHTML=window.kycData.map(k=>'<div class="row"><div><b>'+esc(k.legal_name||k.profiles?.full_name||k.user_id)+'</b><div class="muted">NIN: '+esc(k.nin_number||k.id_number||'—')+' · Status: '+esc(k.status)+'</div></div><button class="btn gold" data-kyc="'+esc(k.id)+'">Review</button></div>').join('')||'<div class="notice">No KYC submissions.</div>';
- all('[data-kyc]').forEach(b=>b.onclick=()=>openKycReview(b.dataset.kyc));
+ await run(async()=>{
+  const {data,error}=await db.from('kyc_applications').select('*,profiles(full_name,phone,country)').order('submitted_at',{ascending:false}).limit(100);if(error)throw error;state.kyc=data||[];
+  $('kycBox').innerHTML=state.kyc.length?state.kyc.map(k=>'<div class="row"><div class="row-main"><div class="row-title">'+esc(k.legal_name||k.profiles?.full_name||k.user_id)+'</div><div>NIN: '+esc(k.nin_number||k.id_number||'—')+' · Status: <span class="pill '+(k.status==='approved'?'ok':k.status==='rejected'?'bad':'warn')+'">'+esc(k.status)+'</span></div><div class="muted">'+esc(k.profiles?.phone||'')+'</div></div><div class="actions"><button class="btn gold small" data-action="review-kyc" data-id="'+esc(k.id)+'">Review</button></div></div>').join(''):'<div class="empty">No KYC applications.</div>';
+ },'kycBox');
 }
-window.openKycReview=async id=>{
- const k=(window.kycData||[]).find(x=>x.id===id);if(!k)return;
- const details='<div class="notice"><h3>KYC Review</h3><p><b>Legal name:</b> '+esc(k.legal_name||'—')+'</p><p><b>Profile name:</b> '+esc(k.profiles?.full_name||'—')+'</p><p><b>Date of birth:</b> '+esc(k.date_of_birth||'—')+'</p><p><b>Nationality:</b> '+esc(k.nationality||k.profiles?.country||'—')+'</p><p><b>Phone:</b> '+esc(k.profiles?.phone||'—')+'</p><p><b>Address:</b> '+esc(k.address||'—')+'</p><p><b>NIN:</b> '+esc(k.nin_number||k.id_number||'—')+'</p><p><b>Status:</b> '+esc(k.status||'—')+'</p><p><b>Submitted:</b> '+esc(k.submitted_at?new Date(k.submitted_at).toLocaleString():'—')+'</p><h3>Submitted images</h3><div id="kycImages"><p>Loading secure images…</p></div><button class="btn gold" id="approveKyc">Approve</button> <button class="btn" id="rejectKyc">Reject</button> <button class="btn" id="closeKyc">Close</button></div>';
- const panel=one('kycList');panel.innerHTML=details;
- one('approveKyc').onclick=()=>reviewKyc(k.id,'approved');one('rejectKyc').onclick=()=>reviewKyc(k.id,'rejected');one('closeKyc').onclick=loadKyc;
- const paths=[['NIN front',k.nin_front_path],['NIN back',k.nin_back_path],['Selfie',k.selfie_path]];
- const imgs=[];
- for(const item of paths){if(!item[1]){imgs.push('<div><b>'+esc(item[0])+'</b><p class="muted">Not submitted</p></div>');continue}const r=await supabaseClient.storage.from('kyc-documents').createSignedUrl(item[1],900);if(r.error||!r.data?.signedUrl){imgs.push('<div><b>'+esc(item[0])+'</b><p class="muted">Could not load secure image</p></div>');continue}imgs.push('<div><b>'+esc(item[0])+'</b><br><img src="'+esc(r.data.signedUrl)+'" alt="Submitted image" style="max-width:100%;max-height:420px;object-fit:contain;background:#07090d;border:1px solid #293340;border-radius:8px;margin-top:8px"></div>')}
- one('kycImages').innerHTML='<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px">'+imgs.join('')+'</div>';
-};
-window.reviewKyc=async(id,status)=>{const r=await supabaseClient.rpc('admin_review_kyc',{p_kyc_id:id,p_status:status,p_note:null});if(r.error)alert(r.error.message);loadKyc()};
-window.viewDepositReceipt=async function(id){
- const d=(window.depositsData||[]).find(x=>x.id===id); if(!d)return;
- const box=one('depositPreview'); box.style.display='block';
- box.innerHTML='<div class="notice">Loading secure receipt…</div>';
- if(!d.proof_url){box.innerHTML='<div class="notice">No receipt was submitted with this deposit.</div>';return}
- const r=await supabaseClient.storage.from('deposit-receipts').createSignedUrl(d.proof_url,900);
- if(r.error||!r.data?.signedUrl){box.innerHTML='<div class="notice">The secure receipt could not be loaded.</div>';return}
- box.innerHTML='<div class="notice"><h3>Deposit Receipt</h3><p><b>Member:</b> '+esc(d.profiles?.full_name||d.user_id)+'</p><p><b>Amount:</b> '+money(d.amount,d.currency)+' · '+esc(d.method)+'</p><p><b>Reference:</b> '+esc(d.reference||'—')+'</p><img src="'+esc(r.data.signedUrl)+'" alt="Deposit receipt" style="display:block;max-width:100%;max-height:650px;margin:12px auto;border-radius:12px;border:1px solid #293340;background:#050605"><p class="muted">Secure preview expires after 15 minutes.</p><button class="btn" onclick="one('depositPreview').style.display='none'">Close</button></div>';
-};
+async function reviewKyc(id){
+ const k=state.kyc.find(x=>x.id===id);if(!k)return;
+ const box=$('kycBox');box.innerHTML='<div class="card"><button class="btn small" id="backKyc">← Back</button><h3>KYC application</h3><div class="grid3"><div><b>Legal name</b><p>'+esc(k.legal_name||'—')+'</p></div><div><b>Date of birth</b><p>'+esc(k.date_of_birth||'—')+'</p></div><div><b>Nationality</b><p>'+esc(k.nationality||k.profiles?.country||'—')+'</p></div><div><b>Phone</b><p>'+esc(k.profiles?.phone||'—')+'</p></div><div><b>NIN</b><p>'+esc(k.nin_number||k.id_number||'—')+'</p></div><div><b>Status</b><p>'+esc(k.status)+'</p></div><div class="full"><b>Address</b><p>'+esc(k.address||'—')+'</p></div></div><h3>Submitted images</h3><div id="kycImages" class="grid3">'+msg('Loading secure images…')+'</div><div class="actions"><button class="btn gold" id="approveKyc">Approve</button><button class="btn danger" id="rejectKyc">Reject</button><button class="btn" id="additionalKyc">Request information</button></div><div id="kycNote" style="margin-top:10px"></div></div>';
+ $('backKyc').onclick=loadKyc;
+ const paths=[['NIN front',k.nin_front_path],['NIN back',k.nin_back_path],['Selfie',k.selfie_path]],out=[];
+ for(const [label,path] of paths){if(!path){out.push('<div class="card"><b>'+label+'</b><p class="muted">Not submitted.</p></div>');continue}const r=await db.storage.from('kyc-documents').createSignedUrl(path,900);out.push(r.error||!r.data?.signedUrl?'<div class="card"><b>'+label+'</b><p class="muted">Secure image unavailable.</p></div>':'<div class="card"><b>'+label+'</b><img src="'+esc(r.data.signedUrl)+'" alt="'+esc(label)+'"></div>')}
+ $('kycImages').innerHTML=out.join('');
+ const review=async status=>{const note=prompt(status==='additional_info_required'?'What information should the member provide?':'Optional review note:','');if(status!=='approved'&&status!=='rejected'&&note===null)return;const r=await db.rpc('admin_review_kyc',{p_kyc_id:id,p_status:status,p_note:note||null});if(r.error){alert(r.error.message);return}await loadKyc();await loadMetrics();alert('KYC updated.')};
+ $('approveKyc').onclick=()=>review('approved');$('rejectKyc').onclick=()=>review('rejected');$('additionalKyc').onclick=()=>review('additional_info_required');
+}
+
 async function loadDeposits(){
- const {data,error}=await supabaseClient.from('deposits').select('*,profiles(full_name)').order('created_at',{ascending:false}).limit(100);
- if(error){one('depositList').innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
- one('depositList').innerHTML=(data||[]).map(d=>'<div class="row"><div><b>'+esc(d.profiles?.full_name||d.user_id)+'</b><div>'+money(d.amount,d.currency)+' · '+esc(d.method)+' · '+esc(d.status)+'</div></div><div>'+(d.status==='pending'?'<button class="btn" onclick="viewDepositReceipt(\''+d.id+'\')">View Receipt</button> <button class="btn gold" onclick="depositReview(\''+d.id+'\',\'approved\')">Approve</button> <button class="btn" onclick="depositReview(\''+d.id+'\',\'rejected\')">Reject</button>':'<span>'+esc(d.status)+'</span>')+'</div></div>').join('')||'<div class="notice">No deposits.</div>';
+ await run(async()=>{
+  const {data,error}=await db.from('deposits').select('*,profiles(full_name)').order('created_at',{ascending:false}).limit(200);if(error)throw error;state.deposits=data||[];$('receiptBox').innerHTML='';
+  $('depositsBox').innerHTML=state.deposits.length?state.deposits.map(d=>'<div class="row"><div class="row-main"><div class="row-title">'+esc(d.profiles?.full_name||d.user_id)+'</div><div>'+money(d.amount,d.currency)+' · '+esc(d.method)+' · <span class="pill '+(d.status==='approved'?'ok':d.status==='rejected'?'bad':'warn')+'">'+esc(d.status)+'</span></div><div class="muted">Reference: '+esc(d.reference||'—')+' · '+new Date(d.created_at).toLocaleString()+'</div></div><div class="actions">'+(d.proof_url?'<button class="btn small" data-action="receipt" data-id="'+esc(d.id)+'">View receipt</button>':'')+(d.status==='pending'?'<button class="btn gold small" data-action="deposit-approve" data-id="'+esc(d.id)+'">Approve</button><button class="btn danger small" data-action="deposit-reject" data-id="'+esc(d.id)+'">Reject</button>':'')+'</div></div>').join(''):'<div class="empty">No deposits yet.</div>';
+ },'depositsBox');
 }
-window.depositReview=async(id,status)=>{const r=await supabaseClient.rpc('admin_review_deposit',{p_deposit_id:id,p_status:status});if(r.error)alert(r.error.message);loadDeposits()};
+async function receipt(id){
+ const d=state.deposits.find(x=>x.id===id);if(!d)return;
+ $('receiptBox').innerHTML=msg('Loading secure receipt…');
+ if(!d.proof_url){$('receiptBox').innerHTML=msg('No receipt was attached.');return}
+ const r=await db.storage.from('deposit-receipts').createSignedUrl(d.proof_url,900);
+ if(r.error||!r.data?.signedUrl){$('receiptBox').innerHTML=msg('The secure receipt could not be loaded.','error');return}
+ $('receiptBox').innerHTML='<div class="preview"><h3>Deposit receipt</h3><p><b>Member:</b> '+esc(d.profiles?.full_name||d.user_id)+' · <b>Amount:</b> '+money(d.amount,d.currency)+' · <b>Method:</b> '+esc(d.method)+'</p><img src="'+esc(r.data.signedUrl)+'" alt="Deposit receipt"><button class="btn" id="closeReceipt">Close</button></div>';$('closeReceipt').onclick=()=>$('receiptBox').innerHTML='';
+}
+async function reviewDeposit(id,status){const r=await db.rpc('admin_review_deposit',{p_deposit_id:id,p_status:status});if(r.error){alert(r.error.message);return}await loadDeposits();await loadMetrics();alert('Deposit '+status+'.')}
+
 async function loadWithdrawals(){
- const {data,error}=await supabaseClient.from('withdrawals').select('*,profiles(full_name)').order('created_at',{ascending:false}).limit(100);
- if(error){one('withdrawList').innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
- one('withdrawList').innerHTML=(data||[]).map(w=>'<div class="row"><div><b>'+esc(w.profiles?.full_name||w.user_id)+'</b><div>'+money(w.amount,w.currency)+' · '+esc(w.method)+' · '+esc(w.status)+'</div></div><select class="wstatus" data-id="'+w.id+'"><option>pending</option><option>under_review</option><option>approved</option><option>processing</option><option>completed</option><option>rejected</option><option>cancelled</option></select></div>').join('')||'<div class="notice">No withdrawals.</div>';
- all('.wstatus').forEach(x=>{const row=(data||[]).find(w=>w.id===x.dataset.id);x.value=row?.status||'pending';x.onchange=async()=>{const r=await supabaseClient.rpc('admin_set_withdrawal_status',{p_withdrawal_id:x.dataset.id,p_status:x.value});if(r.error){alert(r.error.message);x.value=row?.status||'pending'}else loadWithdrawals()}});
+ await run(async()=>{
+  const {data,error}=await db.from('withdrawals').select('*,profiles(full_name)').order('created_at',{ascending:false}).limit(200);if(error)throw error;state.withdrawals=data||[];
+  $('withdrawalsBox').innerHTML=state.withdrawals.length?state.withdrawals.map(w=>'<div class="row"><div class="row-main"><div class="row-title">'+esc(w.profiles?.full_name||w.user_id)+'</div><div>'+money(w.amount,w.currency)+' · '+esc(w.method)+' · <span class="pill '+(w.status==='completed'?'ok':w.status==='rejected'||w.status==='cancelled'?'bad':'warn')+'">'+esc(w.status)+'</span></div><div class="muted">Created '+new Date(w.created_at).toLocaleString()+'</div></div><select class="withdraw-status" data-id="'+esc(w.id)+'" style="max-width:170px"><option value="pending">pending</option><option value="under_review">under review</option><option value="approved">approved</option><option value="processing">processing</option><option value="completed">completed</option><option value="rejected">rejected</option><option value="cancelled">cancelled</option></select></div>').join(''):'<div class="empty">No withdrawals yet.</div>';
+  $$('.withdraw-status').forEach(s=>{const w=state.withdrawals.find(x=>x.id===s.dataset.id);s.value=w?.status||'pending';s.addEventListener('change',async()=>{const r=await db.rpc('admin_set_withdrawal_status',{p_withdrawal_id:s.dataset.id,p_status:s.value});if(r.error){alert(r.error.message);s.value=w?.status||'pending';return}await loadWithdrawals();await loadMetrics()})});
+ },'withdrawalsBox');
 }
-async function loadPlans(){const {data,error}=await supabaseClient.from('investment_plans').select('*').order('min_amount');one('planList').innerHTML=error?'<div class="notice">'+esc(error.message)+'</div>':(data||[]).map(p=>'<div class="row"><div><b>'+esc(p.name)+'</b><div>'+money(p.min_amount,p.currency)+'–'+money(p.max_amount,p.currency)+' · '+p.duration_days+' days · '+money(p.return_amount,p.currency)+'</div></div><button class="btn" onclick="editPlan(\''+p.id+'\')">Edit</button></div>').join('')||'<div class="notice">No plans.</div>';window.plansData=data||[]}
-window.editPlan=id=>{const p=window.plansData.find(x=>x.id===id);if(!p)return;one('planId').value=p.id;one('planName').value=p.name;one('planCurrency').value=p.currency;one('planMin').value=p.min_amount;one('planMax').value=p.max_amount;one('planDays').value=p.duration_days;one('planReturn').value=p.return_amount;one('planDesc').value=p.description||'';one('planActive').checked=p.active;showTab('plans')};
-one('planForm').onsubmit=async e=>{e.preventDefault();const row={name:one('planName').value,currency:one('planCurrency').value,min_amount:Number(one('planMin').value),max_amount:Number(one('planMax').value),duration_days:Number(one('planDays').value),return_amount:Number(one('planReturn').value),description:one('planDesc').value,active:one('planActive').checked};const q=one('planId').value?await supabaseClient.from('investment_plans').update(row).eq('id',one('planId').value):await supabaseClient.from('investment_plans').insert(row);if(q.error)alert(q.error.message);else{alert('Plan saved');e.target.reset();one('planId').value='';loadPlans()}};
-async function loadReceiving(){const {data,error}=await supabaseClient.from('receiving_accounts').select('*').order('created_at',{ascending:false});one('recvList').innerHTML=error?'<div class="notice">'+esc(error.message)+'</div>':(data||[]).map(a=>'<div class="row"><div><b>'+esc(a.method)+' · '+esc(a.currency)+'</b><div class="muted">'+esc(a.bank_name||a.wallet_address||'')+'</div></div><button class="btn" onclick="editReceiving(\''+a.id+'\')">Edit</button></div>').join('')||'<div class="notice">No receiving accounts.</div>';window.receivingData=data||[]}
-window.editReceiving=id=>{const a=window.receivingData.find(x=>x.id===id);if(!a)return;[['recvId',a.id],['recvMethod',a.method],['recvCurrency',a.currency],['recvBank',a.bank_name||''],['recvAccount',a.account_name||''],['recvNumber',a.account_number||''],['recvWallet',a.wallet_address||''],['recvCrypto',a.crypto||''],['recvNetwork',a.network||'']].forEach(x=>one(x[0]).value=x[1]);one('recvActive').checked=a.active;showTab('receiving')};
-one('recvForm').onsubmit=async e=>{e.preventDefault();const row={method:one('recvMethod').value,currency:one('recvCurrency').value,bank_name:one('recvBank').value||null,account_name:one('recvAccount').value||null,account_number:one('recvNumber').value||null,wallet_address:one('recvWallet').value||null,crypto:one('recvCrypto').value||null,network:one('recvNetwork').value||null,active:one('recvActive').checked};const q=one('recvId').value?await supabaseClient.from('receiving_accounts').update(row).eq('id',one('recvId').value):await supabaseClient.from('receiving_accounts').insert(row);if(q.error)alert(q.error.message);else{alert('Account saved');e.target.reset();one('recvId').value='';loadReceiving()}};
-async function loadContent(){const a=await supabaseClient.from('testimonials').select('*').order('sort_order');const b=await supabaseClient.from('faqs').select('*').order('sort_order');one('testList').innerHTML=(a.data||[]).map(x=>'<div class="row"><b>'+esc(x.name)+'</b><span>'+esc(x.quote)+'</span></div>').join('');one('faqList').innerHTML=(b.data||[]).map(x=>'<div class="row"><b>'+esc(x.question)+'</b><span>'+esc(x.answer)+'</span></div>').join('')}
-one('testForm').onsubmit=async e=>{e.preventDefault();const r=await supabaseClient.from('testimonials').insert({name:one('testName').value,role:one('testRole').value,quote:one('testQuote').value});if(r.error)alert(r.error.message);else{e.target.reset();loadContent()}};one('faqForm').onsubmit=async e=>{e.preventDefault();const r=await supabaseClient.from('faqs').insert({question:one('faqQ').value,answer:one('faqA').value});if(r.error)alert(r.error.message);else{e.target.reset();loadContent()}};
-async function loadAcademy(){const a=await supabaseClient.from('events').select('*').order('event_date',{ascending:false});one('eventList').innerHTML=(a.data||[]).map(x=>'<div class="row"><b>'+esc(x.title)+'</b><span>'+new Date(x.event_date).toLocaleString()+'</span></div>').join('');const b=await supabaseClient.from('trading_signals').select('*').order('published_at',{ascending:false}).limit(30);one('signalList').innerHTML=(b.data||[]).map(x=>'<div class="row"><b>'+esc(x.asset)+' '+esc(x.direction)+'</b><span>Entry '+esc(x.entry||'—')+' · SL '+esc(x.stop_loss||'—')+' · TP '+esc(x.take_profit||'—')+'</span></div>').join('')}
-one('eventForm').onsubmit=async e=>{e.preventDefault();const r=await supabaseClient.from('events').insert({title:one('eventTitle').value,event_date:new Date(one('eventDate').value).toISOString(),host:one('eventHost').value,meeting_link:one('eventLink').value,description:one('eventDesc').value,active:true});if(r.error)alert(r.error.message);else{e.target.reset();loadAcademy()}};one('signalForm').onsubmit=async e=>{e.preventDefault();const r=await supabaseClient.from('trading_signals').insert({asset:one('sigAsset').value,direction:one('sigDirection').value,entry:one('sigEntry').value,stop_loss:one('sigSL').value,take_profit:one('sigTP').value,risk_level:one('sigRisk').value,analysis:one('sigAnalysis').value});if(r.error)alert(r.error.message);else{e.target.reset();loadAcademy()}};
-async function loadSettings(){const c=await supabaseClient.from('site_settings').select('*').eq('key','company').maybeSingle();const p=await supabaseClient.from('site_settings').select('*').eq('key','contact').maybeSingle();const r=await supabaseClient.from('site_settings').select('*').eq('key','risk').maybeSingle();one('setEmail').value=c.data?.value?.email||'';one('setPhone').value=p.data?.value?.phone||'';one('setWhatsapp').value=p.data?.value?.whatsapp||'';one('setRisk').value=r.data?.value?.disclaimer||''}
-one('settingsForm').onsubmit=async e=>{e.preventDefault();const {data:{user}}=await supabaseClient.auth.getUser();for(const [key,value] of [['company',{name:'Legacy Wealth',email:one('setEmail').value}],['contact',{phone:one('setPhone').value,whatsapp:one('setWhatsapp').value}],['risk',{disclaimer:one('setRisk').value}]]){const q=await supabaseClient.from('site_settings').upsert({key,value,updated_by:user.id,updated_at:new Date().toISOString()});if(q.error){alert(q.error.message);return}}alert('Settings saved')};
-async function start(){const user=await isAdmin();if(!user)return;const counts=await Promise.all([supabaseClient.from('profiles').select('*',{count:'exact',head:true}),supabaseClient.from('investment_plans').select('*',{count:'exact',head:true}),supabaseClient.from('deposits').select('*',{count:'exact',head:true}).eq('status','pending'),supabaseClient.from('withdrawals').select('*',{count:'exact',head:true}).in('status',['pending','under_review'])]);one('metrics').innerHTML=[['Users',counts[0].count||0],['Plans',counts[1].count||0],['Pending deposits',counts[2].count||0],['Pending withdrawals',counts[3].count||0]].map(x=>'<div class="metric"><span class="muted">'+x[0]+'</span><b>'+x[1]+'</b></div>').join('');await Promise.all([loadUsers(),loadKyc(),loadDeposits(),loadWithdrawals(),loadPlans(),loadReceiving(),loadContent(),loadAcademy(),loadSettings()])}
-start();
+
+async function loadPlans(){
+ await run(async()=>{const {data,error}=await db.from('investment_plans').select('*').order('min_amount');if(error)throw error;state.plans=data||[];$('plansBox').innerHTML=state.plans.length?state.plans.map(p=>'<div class="row"><div><div class="row-title">'+esc(p.name)+' '+(p.active?'<span class="pill ok">Active</span>':'<span class="pill bad">Inactive</span>')+'</div><div>'+money(p.min_amount,p.currency)+' – '+money(p.max_amount,p.currency)+' · '+p.duration_days+' days · stated return '+money(p.return_amount,p.currency)+'</div><div class="muted">'+esc(p.description||'')+'</div></div><button class="btn small" data-action="edit-plan" data-id="'+esc(p.id)+'">Edit</button></div>').join(''):'<div class="empty">No investment plans.</div>'},'plansBox');
+}
+function clearPlan(){$('planForm').reset();$('planId').value='';$('planActive').checked=true}
+$('planClear').onclick=clearPlan;
+$('planForm').addEventListener('submit',async e=>{e.preventDefault();const row={name:$('planName').value.trim(),currency:$('planCurrency').value,min_amount:Number($('planMin').value),max_amount:Number($('planMax').value),duration_days:Number($('planDays').value),return_amount:Number($('planReturn').value),description:$('planDesc').value.trim(),active:$('planActive').checked};const q=$('planId').value?await db.from('investment_plans').update(row).eq('id',$('planId').value):await db.from('investment_plans').insert(row);if(q.error){alert(q.error.message);return}clearPlan();await loadPlans();alert('Plan saved.')});
+function editPlan(id){const p=state.plans.find(x=>x.id===id);if(!p)return;$('planId').value=p.id;$('planName').value=p.name;$('planCurrency').value=p.currency;$('planMin').value=p.min_amount;$('planMax').value=p.max_amount;$('planDays').value=p.duration_days;$('planReturn').value=p.return_amount;$('planDesc').value=p.description||'';$('planActive').checked=!!p.active;window.scrollTo(0,0)}
+
+async function loadReceiving(){
+ await run(async()=>{const {data,error}=await db.from('receiving_accounts').select('*').order('created_at',{ascending:false});if(error)throw error;state.receiving=data||[];$('receivingBox').innerHTML=state.receiving.length?state.receiving.map(a=>'<div class="row"><div><div class="row-title">'+esc(a.method)+' · '+esc(a.currency)+' '+(a.active?'<span class="pill ok">Active</span>':'<span class="pill bad">Inactive</span>')+'</div><div class="muted">'+esc(a.bank_name||a.wallet_address||'')+'</div></div><button class="btn small" data-action="edit-receiving" data-id="'+esc(a.id)+'">Edit</button></div>').join(''):'<div class="empty">No receiving accounts.</div>'},'receivingBox');
+}
+function clearReceiving(){$('receivingForm').reset();$('recvId').value='';$('recvActive').checked=true}
+$('recvClear').onclick=clearReceiving;
+$('receivingForm').addEventListener('submit',async e=>{e.preventDefault();const row={method:$('recvMethod').value,currency:$('recvCurrency').value,bank_name:$('recvBank').value.trim()||null,account_name:$('recvAccount').value.trim()||null,account_number:$('recvNumber').value.trim()||null,wallet_address:$('recvWallet').value.trim()||null,crypto:$('recvCrypto').value.trim()||null,network:$('recvNetwork').value.trim()||null,active:$('recvActive').checked};const q=$('recvId').value?await db.from('receiving_accounts').update(row).eq('id',$('recvId').value):await db.from('receiving_accounts').insert(row);if(q.error){alert(q.error.message);return}clearReceiving();await loadReceiving();alert('Receiving account saved.')});
+function editReceiving(id){const a=state.receiving.find(x=>x.id===id);if(!a)return;$('recvId').value=a.id;$('recvMethod').value=a.method;$('recvCurrency').value=a.currency;$('recvBank').value=a.bank_name||'';$('recvAccount').value=a.account_name||'';$('recvNumber').value=a.account_number||'';$('recvWallet').value=a.wallet_address||'';$('recvCrypto').value=a.crypto||'';$('recvNetwork').value=a.network||'';$('recvActive').checked=!!a.active;window.scrollTo(0,0)}
+
+async function loadContent(){
+ await run(async()=>{const [a,b]=await Promise.all([db.from('testimonials').select('*').order('sort_order'),db.from('faqs').select('*').order('sort_order')]);if(a.error)throw a.error;if(b.error)throw b.error;$('testimonialsBox').innerHTML='<div class="card"><h3>Testimonials</h3>'+(a.data||[]).map(x=>'<div class="row"><div><b>'+esc(x.name)+'</b> · '+esc(x.role||'')+'<p>'+esc(x.quote)+'</p></div><span class="pill '+(x.active?'ok':'bad')+'">'+(x.active?'Active':'Inactive')+'</span></div>').join('')+'</div>';$('faqsBox').innerHTML='<div class="card"><h3>FAQs</h3>'+(b.data||[]).map(x=>'<div class="row"><div><b>'+esc(x.question)+'</b><p>'+esc(x.answer)+'</p></div><span class="pill '+(x.active?'ok':'bad')+'">'+(x.active?'Active':'Inactive')+'</span></div>').join('')+'</div>'},'testimonialsBox');
+}
+$('testForm').addEventListener('submit',async e=>{e.preventDefault();const r=await db.from('testimonials').insert({name:$('testName').value.trim(),role:$('testRole').value.trim(),quote:$('testQuote').value.trim(),active:true});if(r.error){alert(r.error.message);return}e.target.reset();await loadContent()});
+$('faqForm').addEventListener('submit',async e=>{e.preventDefault();const r=await db.from('faqs').insert({question:$('faqQ').value.trim(),answer:$('faqA').value.trim(),active:true});if(r.error){alert(r.error.message);return}e.target.reset();await loadContent()});
+
+async function loadAcademy(){
+ await run(async()=>{const [a,b]=await Promise.all([db.from('events').select('*').order('event_date',{ascending:false}),db.from('trading_signals').select('*').order('published_at',{ascending:false}).limit(50)]);if(a.error)throw a.error;if(b.error)throw b.error;$('eventsBox').innerHTML='<div class="card"><h3>Events</h3>'+(a.data||[]).map(x=>'<div class="row"><div><b>'+esc(x.title)+'</b><div>'+new Date(x.event_date).toLocaleString()+' · '+esc(x.host||'')+'</div><div class="muted">'+esc(x.description||'')+'</div></div><span class="pill '+(x.active?'ok':'bad')+'">'+(x.active?'Active':'Inactive')+'</span></div>').join('')+'</div>';$('signalsBox').innerHTML='<div class="card"><h3>Signals</h3>'+(b.data||[]).map(x=>'<div class="row"><div><b>'+esc(x.asset)+' '+esc(x.direction||'')+'</b><div>Entry '+esc(x.entry||'—')+' · SL '+esc(x.stop_loss||'—')+' · TP '+esc(x.take_profit||'—')+'</div><div class="muted">'+esc(x.analysis||'')+'</div></div><span class="pill ok">'+esc(x.status||'active')+'</span></div>').join('')+'</div>'},'eventsBox');
+}
+$('eventForm').addEventListener('submit',async e=>{e.preventDefault();const r=await db.from('events').insert({title:$('eventTitle').value.trim(),event_date:new Date($('eventDate').value).toISOString(),host:$('eventHost').value.trim(),meeting_link:$('eventLink').value.trim(),description:$('eventDesc').value.trim(),active:true});if(r.error){alert(r.error.message);return}e.target.reset();await loadAcademy()});
+$('signalForm').addEventListener('submit',async e=>{e.preventDefault();const r=await db.from('trading_signals').insert({asset:$('sigAsset').value.trim(),market:$('sigMarket').value.trim(),direction:$('sigDirection').value.trim(),entry:$('sigEntry').value.trim(),stop_loss:$('sigSL').value.trim(),take_profit:$('sigTP').value.trim(),risk_level:$('sigRisk').value.trim(),analysis:$('sigAnalysis').value.trim(),status:'active'});if(r.error){alert(r.error.message);return}e.target.reset();await loadAcademy()});
+
+async function loadSettings(){
+ await run(async()=>{const [a,b]=await Promise.all([db.from('site_settings').select('*'),db.from('social_links').select('*').order('sort_order')]);if(a.error)throw a.error;if(b.error)throw b.error;const m=new Map((a.data||[]).map(x=>[x.key,x.value||{}]));$('setEmail').value=m.get('company')?.email||'';$('setPhone').value=m.get('contact')?.phone||'';$('setWhatsapp').value=m.get('contact')?.whatsapp||'';$('setRisk').value=m.get('risk')?.disclaimer||'';$('socialsBox').innerHTML=(b.data||[]).length?(b.data||[]).map(x=>'<div class="row"><div><b>'+esc(x.label)+'</b><div class="muted">'+esc(x.url)+'</div></div><span class="pill '+(x.active?'ok':'bad')+'">'+(x.active?'Active':'Inactive')+'</span></div>').join(''):'<div class="empty">No social links.</div>'},'socialsBox');
+}
+$('settingsForm').addEventListener('submit',async e=>{e.preventDefault();for(const [key,value] of [['company',{name:'Legacy Wealth',email:$('setEmail').value.trim()}],['contact',{phone:$('setPhone').value.trim(),whatsapp:$('setWhatsapp').value.trim()}],['risk',{disclaimer:$('setRisk').value.trim()}]]){const r=await db.from('site_settings').upsert({key,value,updated_by:state.user.id,updated_at:new Date().toISOString()});if(r.error){alert(r.error.message);return}}alert('Settings saved.');await loadSettings()});
+$('socialForm').addEventListener('submit',async e=>{e.preventDefault();const r=await db.from('social_links').insert({label:$('socialLabel').value.trim(),url:$('socialUrl').value.trim(),active:$('socialActive').checked,sort_order:0});if(r.error){alert(r.error.message);return}e.target.reset();await loadSettings()});
+
+document.addEventListener('click',async e=>{
+ const b=e.target.closest('[data-action]');if(!b)return;const id=b.dataset.id,action=b.dataset.action;
+ if(action==='review-kyc')reviewKyc(id);
+ if(action==='receipt')receipt(id);
+ if(action==='deposit-approve')reviewDeposit(id,'approved');
+ if(action==='deposit-reject')reviewDeposit(id,'rejected');
+ if(action==='edit-plan')editPlan(id);
+ if(action==='edit-receiving')editReceiving(id);
+});
+
+(async function start(){
+ try{const ok=await requireAdmin();if(!ok)return;await loadOverview()}catch(e){$('identity').textContent='Admin startup error';$('overviewBox').innerHTML=msg(e.message||String(e),'error')}
+})();
+})();
 </script>
 </body>
 </html>
