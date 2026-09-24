@@ -44,6 +44,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px;bor
 <button class="nav" data-section="kyc">KYC Review</button>
 <button class="nav" data-section="deposits">Deposits</button>
 <button class="nav" data-section="withdrawals">Withdrawals</button>
+<button class="nav" data-section="referrals">Referral Rewards</button>
 <div class="navgroup">INVESTMENTS</div>
 <button class="nav" data-section="plans">Investment Plans</button>
 <button class="nav" data-section="receiving">Receiving Accounts</button>
@@ -79,6 +80,12 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px;bor
 <section id="withdrawals" class="section">
 <div class="section-head"><h2>Withdrawals</h2><button class="btn small" data-reload="withdrawals">Refresh</button></div>
 <div id="withdrawalsBox"></div>
+</section>
+
+<section id="referrals" class="section">
+<div class="section-head"><h2>Referral Rewards</h2><button class="btn small" data-reload="referrals">Refresh</button></div>
+<div class="notice">Each successful referral automatically creates a $2.00 reward funded by admin. This page is the admin record of those credits.</div>
+<div id="referralRewardsBox"></div>
 </section>
 
 <section id="plans" class="section">
@@ -149,7 +156,7 @@ function show(section){
  $$('.section').forEach(x=>x.classList.toggle('active',x.id===section));
  $$('.nav').forEach(x=>x.classList.toggle('active',x.dataset.section===section));
  $('side').classList.remove('open');$('overlay').classList.remove('show');window.scrollTo(0,0);
- const loaders={overview:loadOverview,users:loadUsers,kyc:loadKyc,deposits:loadDeposits,withdrawals:loadWithdrawals,plans:loadPlans,receiving:loadReceiving,content:loadContent,academy:loadAcademy,settings:loadSettings};
+ const loaders={overview:loadOverview,users:loadUsers,kyc:loadKyc,deposits:loadDeposits,withdrawals:loadWithdrawals,referrals:loadReferralRewards,plans:loadPlans,receiving:loadReceiving,content:loadContent,academy:loadAcademy,settings:loadSettings};
  if(loaders[section]) loaders[section]();
 }
 function fail(id,e){$(id).innerHTML=msg(e?.message||String(e),'error')}
@@ -237,6 +244,24 @@ async function loadWithdrawals(){
   $('withdrawalsBox').innerHTML=state.withdrawals.length?state.withdrawals.map(w=>'<div class="row"><div class="row-main"><div class="row-title">'+esc(w.profiles?.full_name||w.user_id)+'</div><div>'+money(w.amount,w.currency)+' · '+esc(w.method)+' · <span class="pill '+(w.status==='completed'?'ok':w.status==='rejected'||w.status==='cancelled'?'bad':'warn')+'">'+esc(w.status)+'</span></div><div class="muted">Created '+new Date(w.created_at).toLocaleString()+'</div></div><select class="withdraw-status" data-id="'+esc(w.id)+'" style="max-width:170px"><option value="pending">pending</option><option value="under_review">under review</option><option value="approved">approved</option><option value="processing">processing</option><option value="completed">completed</option><option value="rejected">rejected</option><option value="cancelled">cancelled</option></select></div>').join(''):'<div class="empty">No withdrawals yet.</div>';
   $$('.withdraw-status').forEach(s=>{const w=state.withdrawals.find(x=>x.id===s.dataset.id);s.value=w?.status||'pending';s.addEventListener('change',async()=>{const r=await db.rpc('admin_set_withdrawal_status',{p_withdrawal_id:s.dataset.id,p_status:s.value});if(r.error){alert(r.error.message);s.value=w?.status||'pending';return}await loadWithdrawals();await loadMetrics()})});
  },'withdrawalsBox');
+}
+
+async function loadReferralRewards(){
+ await run(async()=>{
+  const [rr,pr]=await Promise.all([
+   db.from('referral_rewards').select('*').order('created_at',{ascending:false}).limit(500),
+   db.from('profiles').select('id,full_name,email: id')
+  ]);
+  if(rr.error)throw rr.error;
+  if(pr.error)throw pr.error;
+  const profiles=Object.fromEntries((pr.data||[]).map(p=>[p.id,p]));
+  const rows=rr.data||[];
+  $('referralRewardsBox').innerHTML=rows.length?rows.map(r=>{
+    const referrer=profiles[r.referrer_id]?.full_name||r.referrer_id;
+    const referred=profiles[r.referred_user_id]?.full_name||r.referred_user_id;
+    return '<div class="row"><div class="row-main"><div class="row-title">'+esc(referrer)+' <span class="pill ok">$2.00 credited</span></div><div>Referred account: '+esc(referred)+'</div><div class="muted">Funding source: '+esc(r.funding_source||'admin')+' · Status: '+esc(r.status)+' · '+new Date(r.created_at).toLocaleString()+'</div><div class="muted">Reward ID: '+esc(r.id)+'</div></div></div>';
+  }).join(''):'<div class="empty">No referral rewards recorded yet.</div>';
+ },'referralRewardsBox');
 }
 
 async function loadPlans(){
