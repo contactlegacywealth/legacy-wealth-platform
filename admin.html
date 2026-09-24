@@ -250,7 +250,7 @@ async function loadReferralRewards(){
  await run(async()=>{
   const [rr,pr]=await Promise.all([
    db.from('referral_rewards').select('*').order('created_at',{ascending:false}).limit(500),
-   db.from('profiles').select('id,full_name,email: id')
+   db.from('profiles').select('id,full_name')
   ]);
   if(rr.error)throw rr.error;
   if(pr.error)throw pr.error;
