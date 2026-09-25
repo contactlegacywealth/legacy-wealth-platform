@@ -4,18 +4,17 @@
   let parentDb=null;
   let frame=null;
   let timer=null;
+  let bootTimer=null;
+  let hooked=false;
 
   const esc=v=>String(v??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
   const statusClass=s=>s==='approved'?'ok':s==='rejected'?'bad':'warn';
   const statusLabel=s=>({approved:'Approved',under_review:'Under review',rejected:'Rejected',not_started:'KYC not started'}[s]||s);
 
-  function getDoc(){
-    try{return frame?.contentDocument||null}catch(_){return null}
-  }
+  function getDoc(){try{return frame?.contentDocument||null}catch(_){return null}}
   function getWin(){try{return frame?.contentWindow||null}catch(_){return null}}
-  function get(id){const d=getDoc();return d?.getElementById(id)||null}
 
-  function deriveStatus(profile, app){
+  function deriveStatus(profile,app){
     const raw=String(profile?.kyc_status||app?.status||'not_started').toLowerCase();
     if(raw==='approved') return 'approved';
     if(raw==='rejected') return 'rejected';
@@ -57,7 +56,7 @@
     const search=tools.querySelector('#lwUserSearch'),filter=tools.querySelector('#lwUserFilter');
     const counts={all:users.length,approved:0,under_review:0,not_started:0,rejected:0};
     users.forEach(u=>counts[u._kyc]=(counts[u._kyc]||0)+1);
-    tools.querySelector('#lwUserCounts').innerHTML=['all','approved','under_review','not_started','rejected'].map(k=>'<span class="lw-count">'+statusLabel(k)+' <b>'+counts[k]+'</b></span>').join('');
+    tools.querySelector('#lwUserCounts').innerHTML=['all','approved','under_review','not_started','rejected'].map(k=>'<span class="lw-count">'+(k==='all'?'All members':statusLabel(k))+' <b>'+counts[k]+'</b></span>').join('');
     const render=()=>renderRows(doc,users,search.value.trim().toLowerCase(),filter.value);
     search.oninput=render;filter.onchange=render;
     return render;
@@ -68,13 +67,13 @@
     const rows=users.filter(u=>{
       const matchesFilter=filter==='all'||u._kyc===filter;
       const hay=(u.full_name||'')+' '+u.id;
-      return matchesFilter && (!query||hay.toLowerCase().includes(query));
+      return matchesFilter&&(!query||hay.toLowerCase().includes(query));
     });
     box.innerHTML=rows.length?rows.map(u=>{
       const st=u._kyc;
       const bal=Number(u._wallet?.available_balance||0).toFixed(2);
       const kycText=st==='not_started'?'KYC not started':statusLabel(st);
-      return '<div class="row"><div class="row-main"><div class="row-title">'+esc(u.full_name||'Unnamed member')+'</div><div class="muted">'+esc(u.id)+'</div><div>Balance: <b>$'+bal+'</b> · KYC: <span class="pill '+statusClass(st)+'">'+esc(kycText)+'</span></div></div><div class="actions"><form class="balance-form" data-user="'+esc(u.id)+'"><input name="amount" type="number" step=".01" placeholder="+ / - USD" required style="max-width:130px"><input name="reason" placeholder="Reason" required style="max-width:180px"><button class="btn gold small">Adjust</button></form><button class="btn danger small lw-delete" data-lw-delete="'+esc(u.id)+'" data-lw-name="'+esc(u.full_name||'this member')+'">Delete user</button></div></div>';
+      return '<div class="row"><div class="row-main"><div class="row-title">'+esc(String(u.full_name||'Unnamed member').toUpperCase())+'</div><div class="muted">'+esc(u.id)+'</div><div>Balance: <b>$'+bal+'</b> · KYC: <span class="pill '+statusClass(st)+'">'+esc(kycText)+'</span></div></div><div class="actions"><form class="balance-form" data-user="'+esc(u.id)+'"><input name="amount" type="number" step=".01" placeholder="+ / - USD" required style="max-width:130px"><input name="reason" placeholder="Reason" required style="max-width:180px"><button class="btn gold small">Adjust</button></form><button class="btn danger small lw-delete" data-lw-delete="'+esc(u.id)+'" data-lw-name="'+esc(String(u.full_name||'this member').toUpperCase())+'">Delete user</button></div></div>';
     }).join(''):'<div class="empty">No members match this filter.</div>';
 
     doc.querySelectorAll('.balance-form').forEach(f=>f.addEventListener('submit',async e=>{
@@ -86,65 +85,64 @@
 
   async function deleteUser(id,name){
     if(!parentDb)return;
-    if(!confirm('Delete '+name+' permanently? This removes the account and its Legacy Wealth data. The member will have to register again.')) return;
+    if(!confirm('Delete '+name+' permanently? This removes the account and its Legacy Wealth data. The member will have to register again.'))return;
     const typed=prompt('Type DELETE to confirm permanent deletion.');
     if(typed!=='DELETE'){alert('Deletion cancelled.');return}
     try{
       const {data:{user:admin},error:ue}=await parentDb.auth.getUser();if(ue)throw ue;
       if(!admin)throw new Error('Administrator session not found.');
-
-      // Remove user-owned files through the Storage API before deleting the database account.
-      const k=await parentDb.from('kyc_applications').select('nin_front_path,nin_back_path,selfie_path').eq('user_id',id);
-      if(k.error)throw k.error;
-      const d=await parentDb.from('deposits').select('proof_url').eq('user_id',id);
-      if(d.error)throw d.error;
+      const k=await parentDb.from('kyc_applications').select('nin_front_path,nin_back_path,selfie_path').eq('user_id',id);if(k.error)throw k.error;
+      const d=await parentDb.from('deposits').select('proof_url').eq('user_id',id);if(d.error)throw d.error;
       const kycPaths=[...new Set((k.data||[]).flatMap(x=>[x.nin_front_path,x.nin_back_path,x.selfie_path]).filter(Boolean))];
       const receiptPaths=[...new Set((d.data||[]).map(x=>x.proof_url).filter(Boolean))];
       if(kycPaths.length){const r=await parentDb.storage.from('kyc-documents').remove(kycPaths);if(r.error)throw r.error}
       if(receiptPaths.length){const r=await parentDb.storage.from('deposit-receipts').remove(receiptPaths);if(r.error)throw r.error}
-
-      const r=await parentDb.rpc('admin_delete_user',{p_user_id:id});
-      if(r.error)throw r.error;
+      const r=await parentDb.rpc('admin_delete_user',{p_user_id:id});if(r.error)throw r.error;
       alert('User deleted permanently. They must register again to create a new account.');
       getWin()?.location.reload();
     }catch(err){alert('User was not deleted: '+(err?.message||String(err)))}
   }
 
-  async function enhanceUsers(force){
-    const doc=getDoc();if(!doc)return;
+  async function enhanceUsers(){
+    const doc=getDoc();if(!doc||!parentDb)return;
     const section=doc.getElementById('users');
-    if(!section||!section.classList.contains('active'))return;
+    const box=doc.getElementById('usersBox');
+    if(!section||!box||!section.classList.contains('active'))return;
     injectStyles(doc);
     try{
       const users=await fetchUsers();
       const render=renderTools(doc,users);
-      if(render) render();
-      const box=doc.getElementById('usersBox');if(box)box.dataset.lwEnhanced='1';
-    }catch(err){
-      const box=doc.getElementById('usersBox');if(box)box.innerHTML='<div class="notice error">'+esc(err?.message||String(err))+'</div>';
-    }
+      if(render)render();
+      box.dataset.lwEnhanced='1';
+    }catch(err){box.innerHTML='<div class="notice error">'+esc(err?.message||String(err))+'</div>'}
   }
 
-  function schedule(){clearTimeout(timer);timer=setTimeout(()=>enhanceUsers(),180)}
+  function schedule(){clearTimeout(timer);timer=setTimeout(()=>enhanceUsers(),120)}
 
   function hook(){
-    if(!frame)return;
-    const doc=getDoc();if(!doc)return;
-    // Capture both the Users nav and its refresh button, then let the native admin code run.
+    const doc=getDoc();if(!doc||hooked)return;
+    hooked=true;
     doc.addEventListener('click',e=>{
       const b=e.target.closest('.nav[data-section="users"], [data-reload="users"]');
-      if(b)schedule();
+      if(b){clearTimeout(timer);timer=setTimeout(()=>enhanceUsers(),300)}
     },true);
+    // Keep checking because the native admin UI can change the active section after this hook runs.
+    const observer=new MutationObserver(()=>{if(doc.getElementById('users')?.classList.contains('active'))schedule()});
+    observer.observe(doc.body,{subtree:true,attributes:true,attributeFilter:['class']});
     schedule();
   }
 
-  function start(){
-    parentDb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+  function boot(){
     frame=document.querySelector('iframe');
-    if(!frame)return;
-    frame.addEventListener('load',hook);
+    if(!frame){bootTimer=setTimeout(boot,500);return}
+    if(window.supabase?.createClient){
+      parentDb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+    }else{
+      bootTimer=setTimeout(boot,500);return;
+    }
+    frame.addEventListener('load',()=>{hooked=false;hook()});
     if(frame.contentDocument?.readyState==='complete')hook();
   }
 
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
