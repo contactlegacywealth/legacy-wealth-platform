@@ -38,9 +38,10 @@ var r=await db.auth.getUser(),u=r.data&&r.data.user;if(!u){location.href='index.
 var fmt=(n)=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(n)||0);
 var w=(await db.from('wallets').select('*').eq('user_id',u.id).maybeSingle()).data||{};
 var p=(await db.from('profiles').select('full_name,kyc_status').eq('id',u.id).maybeSingle()).data||{};
-var invQ=await db.from('investments').select('initial_amount,status,investment_plans(name)').eq('user_id',u.id).eq('status','active').order('created_at',{ascending:false});
+var invQ=await db.from('investments').select('initial_amount,status,start_at,maturity_at,investment_plans(name,return_amount)').eq('user_id',u.id).eq('status','active').order('created_at',{ascending:false});
 var activeInv=invQ.data||[];
 var invested=activeInv.reduce((s,x)=>s+Number(x.initial_amount||0),0);
+var monthlyProjected=activeInv.reduce((s,x)=>s+Math.max(0,Number(x.investment_plans?.return_amount||0)-Number(x.initial_amount||0))/12,0);
 var packages=[...new Set(activeInv.map(x=>x.investment_plans?.name).filter(Boolean))];
 var refQ=await db.rpc('get_member_referral_summary');
 var ref=refQ.data||{};
@@ -55,6 +56,7 @@ document.getElementById('metrics').innerHTML=[
 ['Total Earnings',totalEarnings,'Investment profits: '+fmt(investmentEarnings)+' • Referral earnings: '+fmt(referralEarnings)]
 ].map(x=>'<div class="card"><small>'+x[0]+'</small><strong>'+fmt(x[1])+'</strong><p class="muted" style="font-size:12px;margin:7px 0 0">'+x[2]+'</p></div>').join('');
 document.getElementById('account').innerHTML='Email: '+u.email+'<br>Verified: '+(u.email_confirmed_at?'Yes':'No');
+document.querySelector('.main').insertAdjacentHTML('beforeend','<div class="card"><small>Monthly Projected Earnings</small><strong>'+fmt(monthlyProjected)+'</strong><p class="muted" style="font-size:12px;margin:7px 0 0">Illustrative monthly average based on active package targets over 12 months. This is not a confirmed or guaranteed payout.</p></div>');
 })()
 </script><script>
 (function(){document.querySelectorAll('a[href$=".html"]').forEach(function(a){a.addEventListener('click',function(e){var href=a.getAttribute('href');if(href&&href!=='#'&&!href.startsWith('http')&&href!=='index.html'){e.preventDefault();var l=document.getElementById('pageTransition');l.classList.add('show');setTimeout(function(){location.href=href},180)}})});
