@@ -47,6 +47,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px;bor
 <button class="nav" data-section="referrals">Referral Rewards</button>
 <div class="navgroup">INVESTMENTS</div>
 <button class="nav" data-section="plans">Investment Plans</button>
+<button class="nav" data-section="memberinvestments">Member Investments</button>
 <button class="nav" data-section="receiving">Receiving Accounts</button>
 <div class="navgroup">CONTENT</div>
 <button class="nav" data-section="content">Testimonials & FAQs</button>
@@ -86,6 +87,12 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px;bor
 <div class="section-head"><h2>Referral Rewards</h2><button class="btn small" data-reload="referrals">Refresh</button></div>
 <div class="notice">Each successful referral automatically creates a $2.00 reward funded by admin. This page is the admin record of those credits.</div>
 <div id="referralRewardsBox"></div>
+</section>
+
+<section id="memberinvestments" class="section">
+<div class="section-head"><h2>Member Investments & Payouts</h2><button class="btn small" data-reload="memberinvestments">Refresh</button></div>
+<div class="notice">Original investment amounts, currency, start time and one-year payout date are preserved here. Monthly projections are estimates, not credited earnings or guaranteed returns.</div>
+<div id="memberInvestmentsBox"></div>
 </section>
 
 <section id="plans" class="section">
@@ -156,7 +163,7 @@ function show(section){
  $$('.section').forEach(x=>x.classList.toggle('active',x.id===section));
  $$('.nav').forEach(x=>x.classList.toggle('active',x.dataset.section===section));
  $('side').classList.remove('open');$('overlay').classList.remove('show');window.scrollTo(0,0);
- const loaders={overview:loadOverview,users:loadUsers,kyc:loadKyc,deposits:loadDeposits,withdrawals:loadWithdrawals,referrals:loadReferralRewards,plans:loadPlans,receiving:loadReceiving,content:loadContent,academy:loadAcademy,settings:loadSettings};
+ const loaders={overview:loadOverview,users:loadUsers,kyc:loadKyc,deposits:loadDeposits,withdrawals:loadWithdrawals,referrals:loadReferralRewards,plans:loadPlans,memberinvestments:loadMemberInvestments,receiving:loadReceiving,content:loadContent,academy:loadAcademy,settings:loadSettings};
  if(loaders[section]) loaders[section]();
 }
 function fail(id,e){$(id).innerHTML=msg(e?.message||String(e),'error')}
@@ -262,6 +269,14 @@ async function loadReferralRewards(){
     return '<div class="row"><div class="row-main"><div class="row-title">'+esc(referrer)+' <span class="pill ok">$2.00 credited</span></div><div>Referred account: '+esc(referred)+'</div><div class="muted">Funding source: '+esc(r.funding_source||'admin')+' · Status: '+esc(r.status)+' · '+new Date(r.created_at).toLocaleString()+'</div><div class="muted">Reward ID: '+esc(r.id)+'</div></div></div>';
   }).join(''):'<div class="empty">No referral rewards recorded yet.</div>';
  },'referralRewardsBox');
+}
+
+async function loadMemberInvestments(){
+ await run(async()=>{
+  const {data,error}=await db.from('investments').select('*,profiles(full_name),investment_plans(name,return_amount)').order('created_at',{ascending:false}).limit(300);if(error)throw error;
+  const rows=data||[];
+  $('memberInvestmentsBox').innerHTML=rows.length?rows.map(x=>{const start=x.start_at||x.created_at;const target=Number(x.investment_plans?.return_amount||x.credited_amount||x.initial_amount||0);const monthly=Math.max(0,target-Number(x.initial_amount||0))/12;return '<div class="row"><div class="row-main"><div class="row-title">'+esc(x.profiles?.full_name||x.user_id)+' · '+esc(x.investment_plans?.name||'Investment')+'</div><div>Original investment: <b>'+money(x.initial_amount,x.currency)+'</b> · Status: <span class="pill '+(x.status==='active'?'ok':'warn')+'">'+esc(x.status)+'</span></div><div class="muted">Started: '+new Date(start).toLocaleString()+' · Payout date: '+new Date(x.maturity_at).toLocaleString()+'</div><div class="muted">Projected monthly average: '+money(monthly,x.currency)+' · Recorded credited amount: '+money(x.credited_amount,x.currency)+'</div><div class="muted">Investment ID: '+esc(x.id)+'</div></div></div>'}).join(''):'<div class="empty">No member investments recorded yet.</div>';
+ },'memberInvestmentsBox');
 }
 
 async function loadPlans(){
