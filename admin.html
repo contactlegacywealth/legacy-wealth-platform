@@ -166,7 +166,7 @@ function show(section){
  $$('.section').forEach(x=>x.classList.toggle('active',x.id===section));
  $$('.nav').forEach(x=>x.classList.toggle('active',x.dataset.section===section));
  $('side').classList.remove('open');$('overlay').classList.remove('show');window.scrollTo(0,0);
- const loaders={overview:loadOverview,users:loadUsers,kyc:loadKyc,deposits:loadDeposits,withdrawals:loadWithdrawals,referrals:loadReferralRewards,plans:loadPlans,memberinvestments:loadMemberInvestments,receiving:loadReceiving,content:loadContent,academy:loadAcademy,settings:loadSettings};
+ const loaders={notifications:loadAdminNotifications,overview:loadOverview,users:loadUsers,kyc:loadKyc,deposits:loadDeposits,withdrawals:loadWithdrawals,referrals:loadReferralRewards,plans:loadPlans,memberinvestments:loadMemberInvestments,receiving:loadReceiving,content:loadContent,academy:loadAcademy,settings:loadSettings};
  if(loaders[section]) loaders[section]();
 }
 function fail(id,e){$(id).innerHTML=msg(e?.message||String(e),'error')}
