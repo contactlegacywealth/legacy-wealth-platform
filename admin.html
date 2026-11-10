@@ -39,6 +39,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px;bor
 <div id="overlay" class="overlay"></div>
 <aside id="side" class="side">
 <div class="navgroup">OPERATIONS</div>
+<button class="nav" data-section="notifications">Notifications <span id="adminNotificationCount" class="pill warn" style="margin-left:auto">0</span></button>
 <button class="nav active" data-section="overview">Overview</button>
 <button class="nav" data-section="users">Users & Balances</button>
 <button class="nav" data-section="kyc">KYC Review</button>
@@ -57,6 +58,8 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px;bor
 <main class="main">
 <div class="hero"><div class="eyebrow">ADMIN CONSOLE</div><h1>Legacy Wealth operations</h1><div id="identity" class="status">Checking administrator access…</div></div>
 <div id="metrics" class="metrics"></div>
+
+<section id="notifications" class="section"><div class="section-head"><h2>Admin Notifications</h2><div class="actions"><button class="btn small" id="markAllAdminRead">Mark all read</button><button class="btn small" data-reload="notifications">Refresh</button></div></div><div id="adminNotificationsBox"></div></section>
 
 <section id="overview" class="section active">
 <div class="section-head"><h2>Overview</h2><button class="btn small" data-reload="overview">Refresh</button></div>
@@ -196,6 +199,26 @@ async function loadMetrics(){
  const r=await Promise.all(qs);
  $('metrics').innerHTML=[['Users',r[0].count||0],['Plans',r[1].count||0],['Pending deposits',r[2].count||0],['Pending withdrawals',r[3].count||0]].map(x=>'<div class="metric"><span>'+x[0]+'</span><b>'+x[1]+'</b></div>').join('');
 }
+async function loadAdminNotifications(){
+ await run(async()=>{
+  const {data,error}=await db.from('admin_notifications').select('*').order('created_at',{ascending:false}).limit(100);
+  if(error)throw error;
+  const rows=data||[],unread=rows.filter(n=>!n.read_at).length;
+  const badge=$('adminNotificationCount');if(badge)badge.textContent=String(unread);
+  $('adminNotificationsBox').innerHTML=rows.length?rows.map(n=>'<div class="row" style="'+(!n.read_at?'border-left:4px solid var(--gold);':'opacity:.78;')+'"><div class="row-main"><div class="row-title">'+esc(n.title)+'</div><div>'+esc(n.body)+'</div><div class="muted">'+new Date(n.created_at).toLocaleString()+' · '+esc(n.event_type)+'</div><div class="muted">Member ID: '+esc(n.member_id||'—')+' · Record: '+esc(n.entity_id||'—')+'</div></div><div class="actions">'+(!n.read_at?'<button class="btn small" data-action="admin-notification-read" data-id="'+esc(n.id)+'">Mark read</button>':'<span class="pill">Read</span>')+'</div></div>').join(''):'<div class="empty">No admin notifications yet. New KYC submissions, deposits, withdrawals, new accounts, investments and support requests will appear here.</div>';
+ },'adminNotificationsBox');
+}
+async function markAdminNotificationRead(id){
+ const r=await db.from('admin_notifications').update({read_at:new Date().toISOString()}).eq('id',id);
+ if(r.error){alert(r.error.message);return}
+ await loadAdminNotifications();
+}
+async function markAllAdminNotificationsRead(){
+ const r=await db.from('admin_notifications').update({read_at:new Date().toISOString()}).is('read_at',null);
+ if(r.error){alert(r.error.message);return}
+ await loadAdminNotifications();
+}
+$('markAllAdminRead')?.addEventListener('click',markAllAdminNotificationsRead);
 async function loadOverview(){
  await run(async()=>{await loadMetrics();$('overviewBox').innerHTML='<div class="card"><b>Admin system ready.</b><p class="muted">Choose an operation from the left menu. Each section loads independently so one failed query cannot freeze the whole console.</p></div>'},'overviewBox');
 }
@@ -316,6 +339,7 @@ $('socialForm').addEventListener('submit',async e=>{e.preventDefault();const r=a
 document.addEventListener('click',async e=>{
  const b=e.target.closest('[data-action]');if(!b)return;const id=b.dataset.id,action=b.dataset.action;
  if(action==='review-kyc')reviewKyc(id);
+ if(action==='admin-notification-read')markAdminNotificationRead(id);
  if(action==='receipt')receipt(id);
  if(action==='deposit-approve')reviewDeposit(id,'approved');
  if(action==='deposit-reject')reviewDeposit(id,'rejected');
@@ -324,7 +348,7 @@ document.addEventListener('click',async e=>{
 });
 
 (async function start(){
- try{const ok=await requireAdmin();if(!ok)return;await loadOverview()}catch(e){$('identity').textContent='Admin startup error';$('overviewBox').innerHTML=msg(e.message||String(e),'error')}
+ try{const ok=await requireAdmin();if(!ok)return;await loadOverview();await loadAdminNotifications();setInterval(loadAdminNotifications,30000)}catch(e){$('identity').textContent='Admin startup error';$('overviewBox').innerHTML=msg(e.message||String(e),'error')}
 })();
 })();
 </script>
