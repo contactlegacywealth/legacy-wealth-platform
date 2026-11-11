@@ -41,14 +41,14 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px;bor
 <div class="navgroup">OPERATIONS</div>
 <button class="nav" data-section="notifications">Notifications <span id="adminNotificationCount" class="pill warn" style="margin-left:auto">0</span></button>
 <button class="nav active" data-section="overview">Overview</button>
-<button class="nav" data-section="users">Users & Balances</button>
-<button class="nav" data-section="kyc">KYC Review</button>
-<button class="nav" data-section="deposits">Deposits</button>
-<button class="nav" data-section="withdrawals">Withdrawals</button>
+<button class="nav" data-section="users">Users & Balances<span id="adminBadgeUsers" class="pill warn" style="display:none;margin-left:auto">0</span></button>
+<button class="nav" data-section="kyc">KYC Review<span id="adminBadgeKyc" class="pill warn" style="display:none;margin-left:auto">0</span></button>
+<button class="nav" data-section="deposits">Deposits<span id="adminBadgeDeposits" class="pill warn" style="display:none;margin-left:auto">0</span></button>
+<button class="nav" data-section="withdrawals">Withdrawals<span id="adminBadgeWithdrawals" class="pill warn" style="display:none;margin-left:auto">0</span></button>
 <button class="nav" data-section="referrals">Referral Rewards</button>
 <div class="navgroup">INVESTMENTS</div>
 <button class="nav" data-section="plans">Investment Plans</button>
-<button class="nav" data-section="memberinvestments">Member Investments</button>
+<button class="nav" data-section="memberinvestments">Member Investments<span id="adminBadgeInvestments" class="pill warn" style="display:none;margin-left:auto">0</span></button>
 <button class="nav" data-section="receiving">Receiving Accounts</button>
 <div class="navgroup">CONTENT</div>
 <button class="nav" data-section="content">Testimonials & FAQs</button>
@@ -168,6 +168,13 @@ function show(section){
  $('side').classList.remove('open');$('overlay').classList.remove('show');window.scrollTo(0,0);
  const loaders={notifications:loadAdminNotifications,overview:loadOverview,users:loadUsers,kyc:loadKyc,deposits:loadDeposits,withdrawals:loadWithdrawals,referrals:loadReferralRewards,plans:loadPlans,memberinvestments:loadMemberInvestments,receiving:loadReceiving,content:loadContent,academy:loadAcademy,settings:loadSettings};
  if(loaders[section]) loaders[section]();
+ markAdminSectionRead(section);
+}
+async function markAdminSectionRead(section){
+ const map={users:['new_member'],kyc:['kyc_submitted'],deposits:['deposit_submitted'],withdrawals:['withdrawal_requested'],memberinvestments:['investment_created']};
+ const types=map[section];if(!types)return;
+ const r=await db.from('admin_notifications').update({read_at:new Date().toISOString()}).in('event_type',types).is('read_at',null);
+ if(!r.error)await loadAdminNotifications();
 }
 function fail(id,e){$(id).innerHTML=msg(e?.message||String(e),'error')}
 async function run(fn,id){try{await fn()}catch(e){fail(id,e)}}
@@ -205,6 +212,9 @@ async function loadAdminNotifications(){
   if(error)throw error;
   const rows=data||[],unread=rows.filter(n=>!n.read_at).length;
   const badge=$('adminNotificationCount');if(badge)badge.textContent=String(unread);
+  const counts={new_member:0,kyc_submitted:0,deposit_submitted:0,withdrawal_requested:0,investment_created:0};
+  rows.filter(n=>!n.read_at).forEach(n=>{if(Object.prototype.hasOwnProperty.call(counts,n.event_type))counts[n.event_type]++});
+  [['adminBadgeUsers',counts.new_member],['adminBadgeKyc',counts.kyc_submitted],['adminBadgeDeposits',counts.deposit_submitted],['adminBadgeWithdrawals',counts.withdrawal_requested],['adminBadgeInvestments',counts.investment_created]].forEach(([id,count])=>{const b=$(id);if(b){b.textContent=String(count);b.style.display=count?'inline-flex':'none'}});
   $('adminNotificationsBox').innerHTML=rows.length?rows.map(n=>'<div class="row" style="'+(!n.read_at?'border-left:4px solid var(--gold);':'opacity:.78;')+'"><div class="row-main"><div class="row-title">'+esc(n.title)+'</div><div>'+esc(n.body)+'</div><div class="muted">'+new Date(n.created_at).toLocaleString()+' · '+esc(n.event_type)+'</div><div class="muted">Member ID: '+esc(n.member_id||'—')+' · Record: '+esc(n.entity_id||'—')+'</div></div><div class="actions">'+(!n.read_at?'<button class="btn small" data-action="admin-notification-read" data-id="'+esc(n.id)+'">Mark read</button>':'<span class="pill">Read</span>')+'</div></div>').join(''):'<div class="empty">No admin notifications yet. New KYC submissions, deposits, withdrawals, new accounts, investments and support requests will appear here.</div>';
  },'adminNotificationsBox');
 }
