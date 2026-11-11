@@ -11,12 +11,13 @@ body{margin:0;background:#080a08;color:#f3f0e8}.top{height:72px;display:flex;ali
 (async function(){
 const URL='https://ftugvecpcqjtvoiktjly.supabase.co',KEY='sb_publishable_-0pRAIJEppMpN2wlsjXfJg_Hg5CuieZ',db=window.supabase.createClient(URL,KEY),$=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let user=null,isAdmin=false,profiles={};
+let user=null,isAdmin=false,profiles={},adminIds=new Set();
 const say=(s,ok)=>{$('composerMsg').textContent=s;$('composerMsg').style.color=ok?'#dfbb69':'#ff9999'};
 const date=s=>new Date(s).toLocaleString();
 async function init(){
  const {data,error}=await db.auth.getUser();user=data?.user;if(error||!user){location.href='index.html';return}
  const {data:ad}=await db.from('admin_users').select('user_id').eq('user_id',user.id).eq('active',true).maybeSingle();isAdmin=!!ad;
+ const admins=await db.from('admin_users').select('user_id').eq('active',true);adminIds=new Set((admins.data||[]).map(x=>x.user_id));
  await loadFeed();
  db.channel('community-live').on('postgres_changes',{event:'*',schema:'public',table:'community_posts'},loadFeed).on('postgres_changes',{event:'*',schema:'public',table:'community_comments'},loadFeed).on('postgres_changes',{event:'*',schema:'public',table:'community_reactions'},loadFeed).subscribe();
 }
@@ -34,7 +35,7 @@ async function loadFeed(){
  if(cids.length){const q=await db.from('profiles').select('id,full_name').in('id',cids);(q.data||[]).forEach(p=>profiles[p.id]=p.full_name)}
  host.innerHTML=posts.map(p=>{
  const mine=p.user_id===user.id,canDelete=mine||isAdmin,author=profiles[p.user_id]||'Legacy Wealth Member',pc=comments.filter(c=>c.post_id===p.id),pr=reactions.filter(r=>r.post_id===p.id),liked=pr.some(r=>r.user_id===user.id);
- return '<article class="post"><div class="postHead"><div><span class="author">'+esc(author)+'</span>'+(isAdmin&&p.user_id===user.id?'<span class="role">ADMIN</span>':'')+'<div class="muted" style="font-size:12px;margin-top:4px">'+esc(date(p.created_at))+'</div></div>'+(canDelete?'<button class="soft danger" data-delete-post="'+p.id+'">Delete post</button>':'')+'</div><div class="postBody">'+esc(p.body)+'</div><div class="actions"><button class="soft" data-react="'+p.id+'">'+(liked?'♥':'♡')+' '+pr.length+' · React</button><span class="muted">'+pc.length+' comments</span></div><div class="comments">'+(pc.map(c=>'<div class="comment"><div><b>'+esc(profiles[c.user_id]||'Member')+'</b><div>'+esc(c.body)+'</div><small>'+esc(date(c.created_at))+'</small></div>'+(c.user_id===user.id||isAdmin?'<button class="soft danger" data-delete-comment="'+c.id+'">Delete</button>':'')+'</div>').join(''))+'<form class="commentForm" data-comment="'+p.id+'"><input class="commentInput" maxlength="2000" required placeholder="Write a comment…"><button class="soft" type="submit">Comment</button></form></div></article>';
+ return '<article class="post"><div class="postHead"><div><span class="author">'+esc(author)+'</span>'+(adminIds.has(p.user_id)?'<span class="role">ADMIN</span>':'')+'<div class="muted" style="font-size:12px;margin-top:4px">'+esc(date(p.created_at))+'</div></div>'+(canDelete?'<button class="soft danger" data-delete-post="'+p.id+'">Delete post</button>':'')+'</div><div class="postBody">'+esc(p.body)+'</div><div class="actions"><button class="soft" data-react="'+p.id+'">'+(liked?'♥':'♡')+' '+pr.length+' · React</button><span class="muted">'+pc.length+' comments</span></div><div class="comments">'+(pc.map(c=>'<div class="comment"><div><b>'+esc(profiles[c.user_id]||'Member')+'</b><div>'+esc(c.body)+'</div><small>'+esc(date(c.created_at))+'</small></div>'+(c.user_id===user.id||isAdmin?'<button class="soft danger" data-delete-comment="'+c.id+'">Delete</button>':'')+'</div>').join(''))+'<form class="commentForm" data-comment="'+p.id+'"><input class="commentInput" maxlength="2000" required placeholder="Write a comment…"><button class="soft" type="submit">Comment</button></form></div></article>';
  }).join('');
 }
 $('publish').onclick=async()=>{const body=$('postBody').value.trim();if(!body){say('Write something before publishing.',false);return}if(body.length>5000){say('Your post is too long.',false);return}$('publish').disabled=true;const {error}=await db.from('community_posts').insert({user_id:user.id,body});$('publish').disabled=false;if(error){say('Post failed: '+error.message,false);return}$('postBody').value='';say('Your post is live.',true);await loadFeed()};
