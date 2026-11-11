@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Legacy Wealth | Community</title><link rel="stylesheet" href="styles.css">
+<style>
+body{margin:0;background:#080a08;color:#f3f0e8}.top{height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;background:#0d0f0d;border-bottom:1px solid #292b25;position:sticky;top:0;z-index:5}.brand{color:#fff;text-decoration:none;font-weight:900;letter-spacing:.1em}.brand span{color:#dfbb69}.top a.back{color:#dfbb69;text-decoration:none}.wrap{max-width:900px;margin:32px auto;padding:0 16px}.intro{margin-bottom:22px}.intro h1{margin:5px 0;font-size:clamp(28px,5vw,42px)}.muted{color:#999b92}.panel,.post{background:#0e120f;border:1px solid #292e27;border-radius:16px;padding:18px;margin:14px 0}.panel textarea,.commentInput{width:100%;box-sizing:border-box;background:#080b09;border:1px solid #343a32;border-radius:10px;color:#f3f0e8;padding:13px;font:inherit;resize:vertical}.panel textarea{min-height:105px}.gold{background:#dfbb69;color:#15130e;border:0;border-radius:9px;padding:11px 17px;font-weight:800;cursor:pointer}.soft{background:#171d18;color:#ddd;border:1px solid #343a32;border-radius:9px;padding:8px 12px;cursor:pointer}.danger{color:#ff9b9b;border-color:#633b3b}.postHead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.author{font-weight:800}.role{font-size:10px;color:#dfbb69;border:1px solid #69542b;padding:3px 7px;border-radius:20px;margin-left:6px}.postBody{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;margin:15px 0}.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-top:1px solid #282e28;padding-top:12px}.comments{border-top:1px solid #282e28;margin-top:14px;padding-top:12px}.comment{padding:9px 0;border-bottom:1px solid #20251f;display:flex;justify-content:space-between;gap:10px}.comment small{color:#dfbb69}.commentForm{display:flex;gap:8px;margin-top:12px}.commentInput{flex:1;min-width:0}.empty,.error{padding:20px;text-align:center;color:#999}.error{color:#ff9b9b}.hidden{display:none!important}@media(max-width:520px){.top{height:62px}.wrap{margin:22px auto}.panel,.post{padding:14px}.commentForm{flex-direction:column}}
+</style></head><body>
+<header class="top"><a class="brand" href="dashboard.html">LEGACY <span>WEALTH</span> · COMMUNITY</a><a class="back" href="dashboard.html">← Dashboard</a></header>
+<main class="wrap"><div class="intro"><div class="eyebrow">THE LEGACY WEALTH NETWORK</div><h1>Community Feed</h1><p class="muted">Updates from the team and conversations from members. Share respectfully and keep discussions relevant.</p></div>
+<section class="panel" id="composer"><h2 style="margin-top:0">Share with the community</h2><textarea id="postBody" maxlength="5000" placeholder="Write an update or start a conversation…"></textarea><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:10px"><small class="muted">Up to 5,000 characters</small><button class="gold" id="publish">Publish post</button></div><p id="composerMsg" class="muted"></p></section>
+<div id="feed"><div class="empty">Loading community feed…</div></div></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
+(async function(){
+const URL='https://ftugvecpcqjtvoiktjly.supabase.co',KEY='sb_publishable_-0pRAIJEppMpN2wlsjXfJg_Hg5CuieZ',db=window.supabase.createClient(URL,KEY),$=id=>document.getElementById(id);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let user=null,isAdmin=false,profiles={};
+const say=(s,ok)=>{$('composerMsg').textContent=s;$('composerMsg').style.color=ok?'#dfbb69':'#ff9999'};
+const date=s=>new Date(s).toLocaleString();
+async function init(){
+ const {data,error}=await db.auth.getUser();user=data?.user;if(error||!user){location.href='index.html';return}
+ const {data:ad}=await db.from('admin_users').select('user_id').eq('user_id',user.id).eq('active',true).maybeSingle();isAdmin=!!ad;
+ await loadFeed();
+ db.channel('community-live').on('postgres_changes',{event:'*',schema:'public',table:'community_posts'},loadFeed).on('postgres_changes',{event:'*',schema:'public',table:'community_comments'},loadFeed).on('postgres_changes',{event:'*',schema:'public',table:'community_reactions'},loadFeed).subscribe();
+}
+async function loadFeed(){
+ const host=$('feed');const {data:posts,error}=await db.from('community_posts').select('*').order('created_at',{ascending:false}).limit(100);
+ if(error){host.innerHTML='<div class="error">Community feed could not load: '+esc(error.message)+'</div>';return}
+ const ids=[...new Set((posts||[]).map(p=>p.user_id))];
+ if(ids.length){const q=await db.from('profiles').select('id,full_name').in('id',ids);profiles=Object.fromEntries((q.data||[]).map(p=>[p.id,p.full_name]));}
+ if(!posts?.length){host.innerHTML='<div class="empty panel">No posts yet. Be the first to start a conversation.</div>';return}
+ const postIds=posts.map(p=>p.id);
+ const [cq,rq]=await Promise.all([db.from('community_comments').select('*').in('post_id',postIds).order('created_at'),db.from('community_reactions').select('*').in('post_id',postIds)]);
+ if(cq.error||rq.error){host.innerHTML='<div class="error">Could not load comments or reactions. Please refresh.</div>';return}
+ const comments=cq.data||[],reactions=rq.data||[];
+ const cids=[...new Set(comments.map(c=>c.user_id))].filter(x=>!profiles[x]);
+ if(cids.length){const q=await db.from('profiles').select('id,full_name').in('id',cids);(q.data||[]).forEach(p=>profiles[p.id]=p.full_name)}
+ host.innerHTML=posts.map(p=>{
+ const mine=p.user_id===user.id,canDelete=mine||isAdmin,author=profiles[p.user_id]||'Legacy Wealth Member',pc=comments.filter(c=>c.post_id===p.id),pr=reactions.filter(r=>r.post_id===p.id),liked=pr.some(r=>r.user_id===user.id);
+ return '<article class="post"><div class="postHead"><div><span class="author">'+esc(author)+'</span>'+(isAdmin&&p.user_id===user.id?'<span class="role">ADMIN</span>':'')+'<div class="muted" style="font-size:12px;margin-top:4px">'+esc(date(p.created_at))+'</div></div>'+(canDelete?'<button class="soft danger" data-delete-post="'+p.id+'">Delete post</button>':'')+'</div><div class="postBody">'+esc(p.body)+'</div><div class="actions"><button class="soft" data-react="'+p.id+'">'+(liked?'♥':'♡')+' '+pr.length+' · React</button><span class="muted">'+pc.length+' comments</span></div><div class="comments">'+(pc.map(c=>'<div class="comment"><div><b>'+esc(profiles[c.user_id]||'Member')+'</b><div>'+esc(c.body)+'</div><small>'+esc(date(c.created_at))+'</small></div>'+(c.user_id===user.id||isAdmin?'<button class="soft danger" data-delete-comment="'+c.id+'">Delete</button>':'')+'</div>').join(''))+'<form class="commentForm" data-comment="'+p.id+'"><input class="commentInput" maxlength="2000" required placeholder="Write a comment…"><button class="soft" type="submit">Comment</button></form></div></article>';
+ }).join('');
+}
+$('publish').onclick=async()=>{const body=$('postBody').value.trim();if(!body){say('Write something before publishing.',false);return}if(body.length>5000){say('Your post is too long.',false);return}$('publish').disabled=true;const {error}=await db.from('community_posts').insert({user_id:user.id,body});$('publish').disabled=false;if(error){say('Post failed: '+error.message,false);return}$('postBody').value='';say('Your post is live.',true);await loadFeed()};
+$('feed').addEventListener('click',async e=>{
+ const del=e.target.closest('[data-delete-post]');if(del){if(!confirm('Delete this post and all its comments and reactions?'))return;const {error}=await db.from('community_posts').delete().eq('id',del.dataset.deletePost);if(error)alert('Could not delete post: '+error.message);else await loadFeed();return}
+ const dc=e.target.closest('[data-delete-comment]');if(dc){if(!confirm('Delete this comment?'))return;const {error}=await db.from('community_comments').delete().eq('id',dc.dataset.deleteComment);if(error)alert(error.message);else await loadFeed();return}
+ const react=e.target.closest('[data-react]');if(react){const postId=react.dataset.react;const {data:existing}=await db.from('community_reactions').select('id').eq('post_id',postId).eq('user_id',user.id).maybeSingle();const q=existing?await db.from('community_reactions').delete().eq('id',existing.id):await db.from('community_reactions').insert({post_id:postId,user_id:user.id,reaction:'like'});if(q.error)alert(q.error.message);else await loadFeed()}
+});
+$('feed').addEventListener('submit',async e=>{const form=e.target.closest('[data-comment]');if(!form)return;e.preventDefault();const input=form.querySelector('input'),body=input.value.trim();if(!body)return;const {error}=await db.from('community_comments').insert({post_id:form.dataset.comment,user_id:user.id,body});if(error)alert('Comment failed: '+error.message);else await loadFeed()});
+init().catch(e=>{$('feed').innerHTML='<div class="error">'+esc(e.message||'Unable to open community.')+'</div>'});
+})();
+</script></body></html>
