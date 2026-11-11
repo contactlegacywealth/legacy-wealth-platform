@@ -211,7 +211,7 @@ async function loadAdminNotifications(){
   const {data,error}=await db.from('admin_notifications').select('*').order('created_at',{ascending:false}).limit(100);
   if(error)throw error;
   const rows=data||[],unread=rows.filter(n=>!n.read_at).length;
-  const badge=$('adminNotificationCount');if(badge)badge.textContent=String(unread);
+  const badge=$('adminNotificationCount');if(badge){badge.textContent=String(unread);badge.style.display=unread?'inline-flex':'none'}
   const counts={new_member:0,kyc_submitted:0,deposit_submitted:0,withdrawal_requested:0,investment_created:0};
   rows.filter(n=>!n.read_at).forEach(n=>{if(Object.prototype.hasOwnProperty.call(counts,n.event_type))counts[n.event_type]++});
   [['adminBadgeUsers',counts.new_member],['adminBadgeKyc',counts.kyc_submitted],['adminBadgeDeposits',counts.deposit_submitted],['adminBadgeWithdrawals',counts.withdrawal_requested],['adminBadgeInvestments',counts.investment_created]].forEach(([id,count])=>{const b=$(id);if(b){b.textContent=String(count);b.style.display=count?'inline-flex':'none'}});
